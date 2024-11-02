@@ -445,8 +445,6 @@ namespace CustomMapLib
         #endregion
         #region cosmetic stuff
         private static GameObject ddolStaff;
-        //private static Texture2D texture = new Texture2D(1, 2);
-        //private static GameObject ddolSigil;
         private void CreateOriginal()
         {
             Il2CppAssetBundle bundle;
