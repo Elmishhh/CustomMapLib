@@ -25,20 +25,21 @@ I use visual studio 2022 community, so I'll cover it here.
 
 5: add this at the start of your code <br />
 
-```
+```cs
 using CustomMapLib;
 using MelonLoader;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ExampleCustomMap.Class1), BuildInfo.Name, BuildInfo.Version, BuildInfo.Author, BuildInfo.DownloadLink)] <br />
-[assembly: MelonGame(null, null)] <br />
+[assembly: MelonInfo(typeof(ExampleCustomMap.Class1), BuildInfo.Name, BuildInfo.Version, BuildInfo.Author, BuildInfo.DownloadLink)]
+[assembly: MelonGame(null, null)]
 ```
 
-**make sure you replace ExampleCustomMap.Class1 with your namespace and class name!**
+**make sure you replace `ExampleCustomMap.Class1` with your namespace and class name!** <br />
+**if you're getting an error with `BuildInfo`, add `using BuildInfo = <myNamespace>.BuildInfo;` at the start of your code (and ofc replace <myNamespace> with your namespace**
 
 6: add this in your namespace 
 
-```
+```cs
 public static class BuildInfo
 {
     public const string Name = "add map name here";
@@ -49,3 +50,9 @@ public static class BuildInfo
     public const string DownloadLink = null; // not important
 }
 ```
+
+7: add an inheritence for your main class to `Map` (i might be using the wrong term, dont kill me please) <br />
+8: Override the `OnLateInitializeMelon()` method and add `Initialize(BuildInfo.Name, BuildInfo.Version, BuildInfo.Author, this);` <br />
+9: you should be done now and your project should look like this, if you have any errors please ping me on the rumble modding discord or rumble mapping discord (@elmishh) <br />
+![example image](https://imgur.com/q4GWOSh.png)
+
