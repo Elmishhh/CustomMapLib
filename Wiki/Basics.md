@@ -21,7 +21,7 @@ a few more Overridable methods are added when inheriting from Map instead of Mel
 a few variables are accessible when inheriting from Map
 you can either access them with their name like a normal variable or with base.<variableName>
 
-> <span style="color:black"> 1: (GameObject) mapParent <br />
+> <span style="color:white"> 1: (GameObject) mapParent <br />
 > this is the main parent of your map, you must parent any object you create to this
 
 > 2: (string) mapName, creatorName and mapVersion <br />
