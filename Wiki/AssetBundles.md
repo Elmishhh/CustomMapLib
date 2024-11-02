@@ -5,7 +5,7 @@ same goes with modding, we use assetbundles to load custom models that you other
 ## Creating Assetbundles
 
 1: download unity hub from https://public-cdn.cloud.unity3d.com/hub/prod/UnityHubSetup.exe (link from the official unity website) <br />
-2: after you download unity hub, download unity version 2022.1.13f1 from unityhub://2022.1.13f1/22856944e6d2 (link from the official unity archive website) <br />
+2: after you download unity hub, download unity version 2022.1.13f1 from https://unity.com/releases/editor/archive <br />
 3: hope the universe doesn't end before unity finishes downloading <br />
 4: create a new project in unity `2022.1.13f1` with the `Universtal 3D` template <br />
 ![URP option](https://imgur.com/rzWlMkS.png) <br />
