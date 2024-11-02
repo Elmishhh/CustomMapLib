@@ -131,7 +131,7 @@ namespace CustomMapLib
 
         public GameObject CreatePrimitiveObject(PrimitiveType primitiveType, Vector3 position, Quaternion rotation, Vector3 scale, ObjectType type, SpecialState specials = null)
         {
-            GameObject temp = GameObject.CreatePrimitive(type);
+            GameObject temp = GameObject.CreatePrimitive(primitiveType);
             temp.transform.position = position;
             temp.transform.rotation = rotation;
             temp.transform.localScale = scale;
@@ -250,7 +250,7 @@ namespace CustomMapLib
                 Il2CppAssetBundle bundle = Il2CppAssetBundleManager.LoadFromMemory(bundleBytes);
                 physicMaterialHolder = new GameObject();
                 physicMaterialHolderCollider = physicMaterialHolder.AddComponent<BoxCollider>();
-                physicMaterialHolderCollider.material = GameObject.Instantiate(bundle.LoadAsset<UnityEngine.PhysicMaterial>("baseMaterial"));
+                physicMaterialHolderCollider.material = GameObject.Instantiate(bundle.LoadAsset<PhysicMaterial>("baseMaterial"));
                 GameObject.DontDestroyOnLoad(physicMaterialHolder);
             }
         }
@@ -462,50 +462,15 @@ namespace CustomMapLib
                 ddolStaff = GameObject.Instantiate(bundle.LoadAsset<GameObject>("untitled2"));
                 GameObject.DontDestroyOnLoad(ddolStaff);
                 ddolStaff.transform.position = Vector3.one * 9999;
-                //ddolStaff.transform.position = new Vector3(0, 100, 0);
-                //ddolStaff.transform.rotation = Quaternion.Euler(-90, 0, 0);
             }
-            /*
-            using (Stream imageStream = MelonAssembly.Assembly.GetManifestResourceStream("CustomMapLib.Resources.Zoltraak.png"))
-            {
-                byte[] imageData = new byte[imageStream.Length];
-                imageStream.Read(imageData, 0, imageData.Length);
-                texture.LoadImage(imageData);
-                ddolSigil = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                ddolSigil.transform.localScale = new Vector3(1.75f, 1, 1);
-                MeshRenderer renderer = ddolSigil.GetComponent<MeshRenderer>();
-                renderer.material.shader = urp_lit;
-                renderer.material.mainTexture = texture;
-                renderer.material.SetFloat("_Surface", 0);
-                renderer.material.EnableKeyword("_ALPHATEST_ON");
-                renderer.material.SetFloat("_AlphaClip", 1);
-                renderer.material.SetFloat("_Cutoff", 0.5f);
-                GameObject.DontDestroyOnLoad(ddolSigil);
-
-                GameObject duplicate = GameObject.Instantiate(ddolSigil);
-
-                ddolSigil.transform.position = new Vector3(-0.4f, 100, -8.1f);
-                ddolSigil.transform.SetParent(ddolStaff.transform);
-
-                duplicate.transform.SetParent(ddolSigil.transform);
-                duplicate.transform.localPosition = new Vector3(0.4571f, 0, 0);
-                duplicate.transform.rotation = Quaternion.Euler(0, 0, 180);
-
-
-                ddolStaff.transform.position = Vector3.one * 9999f;
-                ddolStaff.transform.rotation = Quaternion.identity;
-                ddolSigil.transform.rotation = Quaternion.identity;
-                ddolSigil.SetActive(false);
-            }
-            */
         }
         private System.Collections.IEnumerator coroutine()
         {
             while (PlayerManager.instance.localPlayer == null) yield return new WaitForFixedUpdate();
             for (int i = 0; i < 200; i++) yield return new WaitForFixedUpdate();
-            whyisitnulling();
+            actualmethod();
         }
-        private void whyisitnulling()
+        private void actualmethod()
         {
             try
             {
@@ -527,338 +492,11 @@ namespace CustomMapLib
                         staff.transform.SetParent(chest.transform);
                         staff.transform.localPosition = new Vector3(0, 0.1f, -0.15f);
                         staff.transform.localRotation = Quaternion.Euler(35, 90, 0);
-                        /*
-                        if (_staticCustomMultiplayerMaps.currentScene == "Gym" || _staticCustomMultiplayerMaps.currentScene == "Park")
-                        {
-                            staff.AddComponent<MagicHandler>();
-                        }*/
                     }
                 }
             }
             catch { }
         }
-        /*
-        [RegisterTypeInIl2Cpp]
-        public class MagicHandler : MonoBehaviour
-        {
-            public GameObject sigil;
-            public GameObject beam;
-
-            public static RaiseEventOptions eventOptions = new RaiseEventOptions() { Receivers = ReceiverGroup.Others };
-            public static byte eventCode = 17;
-
-            public bool rightTrigger;
-            public bool prevRightTrigger;
-
-            public bool rightGrip;
-            public bool prevRightGrip;
-
-            public GameObject chest;
-            public GameObject rightHand;
-
-            public bool HoldingStaff;
-
-            public void Start()
-            {
-                sigil = transform.GetChild(2).gameObject;
-                chest = transform.parent.gameObject;
-                rightHand = chest.transform.root.GetChild(1).GetChild(2).gameObject;
-
-                PhotonNetwork.NetworkingClient.EventReceived += (System.Action<EventData>)OnEventReceived;
-            }
-
-
-            public void Update()
-            {
-                if (PlayerManager.instance.localPlayer.Data.GeneralData.InternalUsername == "3F73EBEC8EDD260F")
-                {
-                    prevRightTrigger = rightTrigger;
-                    rightTrigger = RC.GetTrigger() > 0.5f;
-
-                    prevRightGrip = rightGrip;
-                    rightGrip = RC.GetGrip() > 0.5f;
-
-                    if (rightTrigger && !prevRightTrigger && HoldingStaff) MelonCoroutines.Start(Fire(sigil.transform.position, sigil.transform.rotation, sigil.transform.localScale, true));
-
-                    if (rightGrip && !prevRightGrip && Vector3.Distance(rightHand.transform.position, transform.position) < 0.15) SnapToHand(true);
-                    else if (!rightGrip && prevRightGrip) SnapToBack(true);
-                }
-            }
-
-            public void SnapToBack(bool raiseEvent)
-            {
-                try
-                {
-                    transform.SetParent(chest.transform);
-                    transform.localPosition = new Vector3(0, 0.1f, -0.15f);
-                    transform.localRotation = Quaternion.Euler(35, 90, 0);
-                    HoldingStaff = false;
-
-                    if (raiseEvent)
-                    {
-                        string eventData = "staff\\back";
-                        PhotonNetwork.RaiseEvent(eventCode, eventData, eventOptions, SendOptions.SendReliable);
-                    }
-                }
-                catch { }
-            }
-            public void SnapToHand(bool raiseEvent)
-            {
-                try
-                {
-                    transform.SetParent(rightHand.transform);
-                    transform.localPosition = new Vector3(0, -0.05f, 0);
-                    transform.localRotation = Quaternion.Euler(75, 0, 0);
-                    HoldingStaff = true;
-
-                    if (raiseEvent)
-                    {
-                        string eventData = "staff\\hand";
-                        PhotonNetwork.RaiseEvent(eventCode, eventData, eventOptions, SendOptions.SendReliable);
-                    }
-                }
-                catch { }
-            }
-            public static System.Collections.IEnumerator Fire(Vector3 position, Quaternion rotation, Vector3 scale, bool raiseEvent)
-            {
-                GameObject instancedSigil = GameObject.Instantiate(ddolSigil);
-                instancedSigil.transform.position = position;
-                instancedSigil.transform.rotation = rotation;
-                instancedSigil.transform.localScale = scale * 0.012f;
-                instancedSigil.SetActive(true);
-
-                yield return new WaitForSeconds(0.4f);
-
-                GameObject spell = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                spell.transform.rotation = instancedSigil.transform.rotation;
-                spell.transform.position = instancedSigil.transform.position + instancedSigil.transform.up * 1;
-                spell.transform.localScale = new Vector3(1.2f, 0.4f, 1.2f);
-                MeshRenderer renderer = spell.GetComponent<MeshRenderer>();
-                renderer.material.shader = urp_lit;
-                renderer.material.color = new Color32(157, 0, 255, 255);
-
-                Collider collider = spell.GetComponent<Collider>();
-                collider.isTrigger = true;
-
-                spell.AddComponent<KillPlayerOnCollision>().useLayermask = false;
-
-                spell.AddComponent<ProjectileHandler>().instancedSigil = instancedSigil;
-
-                Rigidbody rb = spell.AddComponent<Rigidbody>();
-                rb.useGravity = false;
-
-                if (raiseEvent)
-                {
-                    string _position = $"{position.x},{position.y},{position.z}";
-                    string _rotation = $"{rotation.eulerAngles.x},{rotation.eulerAngles.y},{rotation.eulerAngles.z}";
-                    string _scale = $"{scale.x},{scale.y},{scale.z}";
-                    string eventData = $"spell\\{_position}|{_rotation}|{_scale}";
-                    PhotonNetwork.RaiseEvent(eventCode, eventData, eventOptions, SendOptions.SendReliable);
-                }
-            }
-            public void OnEventReceived(EventData data)
-            {
-                if (data.Code == eventCode)
-                {
-                    string[] dataType = data.CustomData.ToString().Split('\\');
-                    if (dataType[0] == "spell")
-                    {
-                        string[] sentData = dataType[1].Split('|');
-                        MelonLogger.Msg(1);
-                        MelonLogger.Msg(sentData[0]);
-                        Vector3 position = StringToVector3(sentData[0]);
-                        MelonLogger.Msg(2);
-                        MelonLogger.Msg(sentData[1]);
-                        Quaternion rotation = Quaternion.Euler(StringToVector3(sentData[1]));
-                        MelonLogger.Msg(3);
-                        MelonLogger.Msg(sentData[2]);
-                        Vector3 scale = StringToVector3(sentData[2]);
-                        MelonLogger.Msg(4);
-                        Fire(position, rotation, scale, false);
-                    }
-                    else if (dataType[0] == "staff")
-                    {
-                        if (dataType[1] == "back") SnapToBack(false);
-                        else if (dataType[1] == "hand") SnapToHand(false);
-                    }
-                }
-            }
-            private Vector3 StringToVector3(string line)
-            {
-                string[] stringarray = line.Split(',');
-                float[] position = new float[3];
-                for (int i = 0; i < 3; i++) position[i] = float.Parse(stringarray[i]);
-                Vector3 temp = new Vector3(position[0], position[1], position[2]);
-                return temp;
-            }
-        }
-
-        [RegisterTypeInIl2Cpp]
-        public class ProjectileHandler : MonoBehaviour
-        {
-            public GameObject instancedSigil;
-            public Rigidbody rb;
-            public void FixedUpdate()
-            {
-                if (rb != null)
-                {
-                    rb.velocity = transform.up * 160;
-                }
-            }
-            public void Start() => MelonCoroutines.Start(coroutine());
-            public System.Collections.IEnumerator coroutine()
-            {
-                gameObject.layer = 11;
-                rb = transform.GetComponent<Rigidbody>();
-                yield return new WaitForSeconds(0.7f);
-                GameObject.Destroy(instancedSigil);
-                yield return new WaitForSeconds(0.5f);
-                GameObject.Destroy(gameObject);
-            }
-
-            public void OnTriggerEnter(Collider other)
-            {
-                Structure structure = other.gameObject.GetComponent<Structure>();
-                Structure structure2 = other.transform.parent.gameObject.GetComponent<Structure>();
-                if (structure != null && PhotonNetwork.IsMasterClient)
-                {
-                    structure.Kill(Vector3.zero, true, true, true);
-                }
-                else if (structure2 != null && PhotonNetwork.IsMasterClient)
-                {
-                    structure2.Kill(Vector3.zero, true, true, true);
-                }
-            }
-        }
-        */
         #endregion
-        /*
-[HarmonyPatch(typeof(ParkBoardGymVariant), "OnPlayerEnteredTrigger")]
-public static class Patch
-{
-private static void Prefix()
-{
-if (SteamFriends.GetPersonaName() == "elmish")
-{
-ParkBoardGymVariant parkBoardGymVariant = GameObject.Find("--------------LOGIC--------------/Heinhouser products/Parkboard").GetComponent<ParkBoardGymVariant>();
-parkBoardGymVariant.hostPlayerCapacity = 255;
-}
-}
-}
-[HarmonyPatch(typeof(PhotonNetwork), "CreateRoom")]
-public static class AlsoAPatch
-{
-private static void Prefix(ref string roomName)
-{
-if (SteamFriends.GetPersonaName() == "elmish")
-{
-string temp = "<color=#FF0000>c</color><color=#DF001F>m</color><color=#BF003F>o</color><color=#9F005F>n</color><color=#7F007F>,</color> <color=#3F00BF>j</color><color=#1F00DF>o</color><color=#0000FF>i</color><color=#0000DF>n</color> <color=#00009F>m</color><color=#00007F>e</color><color=#00005F>.</color><color=#00003F>.</color><color=#00001F>.</color>";
-roomName = $"{roomName.Split('|')[0]}|<color=#800000>???</color>|{temp}"; //UID?|room name|room gamemode
-}
-}
-}
-bool q;
-bool prevq;
-bool k;
-bool prevk;
-
-Mod myMod = new Mod();
-test _instance;
-
-Il2CppRUMBLE.Pools.Pool<PooledMonoBehaviour> hitMarkerPool;
-
-public override void OnLateInitializeMelon()
-{
-GameObject obj = new GameObject();
-_instance = obj.AddComponent<test>();
-obj.AddComponent<PhotonView>().ViewID = 204968724;
-GameObject.DontDestroyOnLoad(obj);
-
-myMod.ModName = "rumble war crimes =)";
-myMod.ModVersion = "1.0.0";
-myMod.SetFolder("Test");
-myMod.AddToList("room code", "", "the room code you want to join", new Tags { });
-myMod.ModSaved += OnSaved;
-myMod.GetFromFile();
-UI.instance.AddMod(myMod);
-}
-public void OnSaved()
-{
-PhotonNetwork.JoinRoom(myMod.Settings[0].Value.ToString());
-}
-public override void OnSceneWasLoaded(int buildIndex, string sceneName)
-{
-base.OnSceneWasLoaded(buildIndex, sceneName);
-if (sceneName == "Park" || sceneName == "Map0" || sceneName == "Map1")
-{
-foreach (Il2CppRUMBLE.Players.Player player in PlayerManager.instance.AllPlayers)
-{
-string internalID = player.Data.GeneralData.InternalUsername;
-if (internalID != PlayerManager.instance.localPlayer.Data.GeneralData.InternalUsername) MelonLogger.Msg(internalID);
-}
-}
-}
-public async override void OnUpdate()
-{
-prevq = q;
-prevk = k;
-q = Input.GetKeyDown(KeyCode.Q);
-k = Input.GetKeyDown(KeyCode.K);
-if (q && !prevq)
-{
-MelonCoroutines.Start(_instance.test2());
-}
-if (k && !prevk)
-{
-MelonLogger.Msg("joining room");
-await delay(10000);
-MelonLogger.Msg("attempting to join");
-string roomcode = File.ReadAllLines(@"UserData\sekrit2.txt")[0];
-if (roomcode != "") PhotonNetwork.JoinRoom(roomcode);
-}
-}
-public async Task delay(int time)
-{
-await Task.Delay(time);
-}
-[HarmonyPatch(typeof(Il2CppRUMBLE.Networking.PhotonInterfaceCollection), "OnFriendListUpdate", new Type[] { typeof(Il2CppSystem.Collections.Generic.List<FriendInfo>) })]
-public static class Patch2
-{
-public static void Prefix(Il2CppSystem.Collections.Generic.List<FriendInfo> friendList)
-{
-MelonLogger.Msg("patch called");
-foreach (FriendInfo friend in friendList)
-{
-MelonLogger.Msg($"UserId:{friend.UserId}, is online:{friend.IsOnline}, is in room:{friend.IsInRoom}, current room: {friend.Room}");
-}
-}
-}
-[RegisterTypeInIl2Cpp]
-public class test : MonoBehaviourPunCallbacks
-{
-public test(IntPtr ptr) : base(ptr) { }
-public override void OnConnectedToMaster()
-{
-MelonLogger.Msg("connected to master!");
-MelonCoroutines.Start(test2());
-}
-public System.Collections.IEnumerator test2()
-{
-if (!PhotonNetwork.InLobby)
-{
-MelonLogger.Msg("joining room");
-PhotonNetwork.JoinLobby(TypedLobby.Default);
-while (!PhotonNetwork.InLobby)
-{
-yield return new WaitForFixedUpdate();
-}
-}
-yield return new WaitForFixedUpdate();
-string[] sekrit = File.ReadAllLines(@"UserData\sekrit.txt");
-bool e = PhotonNetwork.FindFriends(sekrit);
-PhotonNetwork.LeaveLobby();
-}
-}
-*/ // UNRELATED
     }
 }
