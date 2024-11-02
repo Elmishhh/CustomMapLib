@@ -3,8 +3,7 @@
 ## Method Overrides 
 a few more Overridable methods are added when inheriting from Map instead of MelonMod (keep in mind Map still has all of the features from MelonMod)
 
-1: OnMapMatchLoad(bool amHost)
-
+1: OnMapMatchLoad(bool amHost) <br />
 happens when the maps is chosen and enabled during a match
 
 > 2: OnMapDisabled() 
