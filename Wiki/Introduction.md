@@ -33,6 +33,7 @@ using UnityEngine;
 **make sure you replace ExampleCustomMap.Class1 with your namespace and class name!**
 
 6: add this in your namespace 
+
 ```
 public static class BuildInfo
 {
