@@ -19,6 +19,8 @@ I use visual studio 2022 community, so I'll cover it here.
 
 ![this](images/Solution Explorer.png)
 
+![this](https://imgur.com/a/shGqqLT)
+
 3: right click Dependencies and click on `Add Project Reference...`, a new window should open <br />
 4: in the bottom right, click on `Browse...` and add: <br />
 > 1: from "RUMBLE\Mods" adds "CustomMapLib", "ModUI", "CustomMultiplayerMaps" and "RumbleModdingAPI" <br />
