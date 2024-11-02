@@ -24,12 +24,16 @@ I use visual studio 2022 community, so I'll cover it here.
 > 3: from "RUMBLE\MelonLoader\Il2CppAssemblies" add everything with "Il2Cpp" and "Unity" in the name
 
 5: add this at the start of your code <br />
+
+```
 using CustomMapLib;
 using MelonLoader;
 using UnityEngine;
 
 [assembly: MelonInfo(typeof(ExampleCustomMap.Class1), BuildInfo.Name, BuildInfo.Version, BuildInfo.Author, BuildInfo.DownloadLink)] <br />
 [assembly: MelonGame(null, null)] <br />
+```
+
 **make sure you replace ExampleCustomMap.Class1 with your namespace and class name!**
 
 6: add this in your namespace 
@@ -43,4 +47,5 @@ public static class BuildInfo
     public const string Company = null; // not important
     public const string Version = "1.0.0"; // change when updating your map to avoid 2 players matching with different versions!
     public const string DownloadLink = null; // not important
-}```
+}
+```
