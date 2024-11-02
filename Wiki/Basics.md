@@ -58,5 +58,5 @@ general methods and variables, could be useful could be not depending on what yo
 > 5: ObjectType, either a CombatFloor (can do moves on), NonCombatFloor (cannot do moves on) or Wall (doesn't use mesh collider) <br />
 > 6: SpecialState, doesn't have to be set, but if it is you can decide if you want a floor or wall bouncy or <br />
 > example of a bouncy and slippery SpecialState <br />
-![example](https://imgur.com/JXYkzm1.png)
+![example](https://imgur.com/JXYkzm1.png) <br />
 > **keep in mind friction only applies to ungrounded structures, also bounciness doesn't always count as a ground touch to the player**
