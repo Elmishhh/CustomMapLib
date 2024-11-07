@@ -41,8 +41,8 @@ a few QoL variables that can be accessed with Map.<variableName>
 > 1: urp_lit <br />
 > the standard "Universal Render Pipeline/Lit" unity shader, use when needed
 
-> 2: physicMaterialCollider <br />
-> holds a physic material (those have to be assetbundle loaded in) for whoever wants to use it, please refer to https://docs.unity3d.com/560/Documentation/Manual/class-PhysicMaterial.html 
+> 2: GetPhysicsMaterial <br />
+> creates a new UnityEngine.PhysicMaterial because they have to be assetbundle loaded in, refer [this](https://docs.unity3d.com/560/Documentation/Manual/class-PhysicMaterial.html) for a guilde on them 
 
 ### Misc methods and variables
 general methods and variables, could be useful could be not depending on what you're doing

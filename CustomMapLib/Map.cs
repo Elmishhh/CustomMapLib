@@ -67,8 +67,8 @@ namespace CustomMapLib
         public _InternalPedestalSequences._InternalHostPedestal HostPedestal = new _InternalPedestalSequences._InternalHostPedestal();
         public _InternalPedestalSequences._InternalClientPedestal ClientPedestal = new _InternalPedestalSequences._InternalClientPedestal();
 
-        public static GameObject physicMaterialHolder;
-        public static Collider physicMaterialHolderCollider;
+        private static GameObject physicMaterialHolder;
+        private static Collider physicMaterialHolderCollider;
 
         public void Initialize(string _mapName, string _mapVersion, string _creatorName, Map _instance)
         {
@@ -149,7 +149,7 @@ namespace CustomMapLib
             temp.transform.SetParent(mapParent.transform);
             if (specials != null)
             {
-                col.material = GameObject.Instantiate(physicMaterialHolderCollider.material);
+                col.material = GetPhysicsMaterial();
                 switch (specials.state)
                 {
                     case SpecialStates.Bouncy:
@@ -183,6 +183,7 @@ namespace CustomMapLib
             }
             return temp;
         }
+        public static PhysicMaterial GetPhysicsMaterial() { return GameObject.Instantiate(physicMaterialHolderCollider.material); }
 
         public virtual void OnMapMatchLoad(bool amHost) { }
         public virtual void OnMapDisabled() { }
