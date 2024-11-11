@@ -40,3 +40,5 @@ public class CreateAssetBundles
 
 
 ## loading Assetbundles
+
+not done yet, there's a guide somewhere in #mods-resources in the discord tho
