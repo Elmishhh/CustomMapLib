@@ -42,4 +42,35 @@ public class CreateAssetBundles
 
 ## loading Assetbundles
 
-not done yet, there's a guide somewhere in #mods-resources in the discord tho
+### loading from memory (user friendly way)
+much nicer on mod users to download this way
+
+1: create a new folder in your project <br />
+2: add your assetbundle to your folder <br />
+3: right click the assetbundle in visual studio and click properties <br />
+4: set `Build Action` to `Embedded resource` <br />
+5: create a new method in your mod, we'll call it "LoadAsset" for now (name does not matter) <br />
+6: add the following code inside your method <br />
+```cs
+using (System.IO.Stream bundleStream = MelonAssembly.Assembly.GetManifestResourceStream("ProjectName.FolderName.AssetbundleName"))
+{
+    byte[] bundleBytes = new byte[bundleStream.Length];
+    bundleStream.Read(bundleBytes, 0, bundleBytes.Length);
+    Il2CppAssetBundle bundle = Il2CppAssetBundleManager.LoadFromMemory(bundleBytes);
+    var asset = GameObject.Instantiate(bundle.LoadAsset<GameObject>("AssetName");
+}
+```
+||(note, if you're getting errors from `Il2CppAssetBundle` make sure you're on melonloader 0.6.5 or higher and reference `UnityEngine.Il2cppAssetbundleManager` from the net6 folder)|| <br />
+7: change `ProjectName.FolderName.AssetbundleName` to your path, example: "CustomMapLib.Resources.asset" <br />
+![example image](https://imgur.com/Q0D0GYE.png) <br />
+8: replace "Assetname" when to what your asset is called in unity when you bundled it, also replace <GameObject> to whatever asset you're loading if needed <br />
+9: store the asset in a variable and place it in DontDestroyOnLoad <br />
+
+
+### loading from folder (if you want the user to be able to edit the asset)
+less preferrable than loading from memory if the asset is always consistent but better if it can be changed
+
+1: create a new method in your code, we'll call it "LoadAsset" again (or use an existing method) <br />
+2: add `Il2CppAssetBundle bundle = Il2CppAssetBundleManager.LoadFromFile("path goes here"); <br />
+3: edit the path, example: "UserData/MyAssets/asset" <br />
+4: load the asset with `var asset = GameObject.Instantiate(bundle.LoadAsset<GameObject>("AssetName");` (same as before) <br />
