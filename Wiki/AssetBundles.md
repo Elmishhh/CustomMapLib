@@ -40,9 +40,9 @@ public class CreateAssetBundles
 12: your project is now fully set up, when you want to build an assetbundle just add your selected prefabs to the same bundle and click on `Build AssetBundles` in the `assets` tab at the top left <br />
 
 
-## loading Assetbundles
+# loading Assetbundles
 
-### loading from memory (user friendly way)
+## loading from memory (user friendly way)
 much nicer on mod users to download this way
 
 1: create a new folder in your project <br />
@@ -65,6 +65,7 @@ using (System.IO.Stream bundleStream = MelonAssembly.Assembly.GetManifestResourc
 ![example image](https://imgur.com/Q0D0GYE.png) <br />
 8: replace "Assetname" when to what your asset is called in unity when you bundled it, also replace <GameObject> to whatever asset you're loading if needed <br />
 9: store the asset in a variable and place it in DontDestroyOnLoad <br />
+
 
 
 ### loading from folder (if you want the user to be able to edit the asset)
