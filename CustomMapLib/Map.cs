@@ -127,7 +127,7 @@ namespace CustomMapLib
             }
         }
 
-        public GameObject CreatePrimitiveObject(PrimitiveType primitiveType, Vector3 position, Quaternion rotation, Vector3 scale, ObjectType type, SpecialState specials = null)
+        public GameObject CreatePrimitiveObject(PrimitiveType primitiveType, Vector3 position, Quaternion rotation, Vector3 scale, ObjectType type, PrimitivePhysicsMaterial primitivePhysicsMaterial = null)
         {
             GameObject temp = GameObject.CreatePrimitive(primitiveType);
             temp.transform.position = position;
@@ -149,32 +149,32 @@ namespace CustomMapLib
             groundcol.isMainGroundCollider = true;  
             groundcol.collider = col;
             temp.transform.SetParent(mapParent.transform);
-            if (specials != null)
+            if (primitivePhysicsMaterial != null)
             {
                 col.material = GetPhysicsMaterial();
-                switch (specials.state)
+                switch (primitivePhysicsMaterial.options)
                 {
-                    case SpecialStates.Bouncy:
-                        col.material.bounciness = specials.Bouncines;
-                        col.material.bouncyness = specials.Bouncines;
+                    case Options.Bouncy:
+                        col.material.bounciness = primitivePhysicsMaterial.Bounciness;
+                        col.material.bouncyness = primitivePhysicsMaterial.Bounciness;
                         break;
 
-                    case SpecialStates.Slippery:
-                        col.material.dynamicFriction = specials.Friction;
-                        col.material.dynamicFriction2 = specials.Friction;
-                        col.material.staticFriction = specials.Friction;
-                        col.material.staticFriction2 = specials.Friction;
+                    case Options.Friction:
+                        col.material.dynamicFriction = primitivePhysicsMaterial.Friction;
+                        col.material.dynamicFriction2 = primitivePhysicsMaterial.Friction;
+                        col.material.staticFriction = primitivePhysicsMaterial.Friction;
+                        col.material.staticFriction2 = primitivePhysicsMaterial.Friction;
                         col.material.frictionCombine = PhysicMaterialCombine.Minimum;
                         break;
 
-                    case SpecialStates.Both:
-                        col.material.bounciness = specials.Bouncines;
-                        col.material.bouncyness = specials.Bouncines;
+                    case Options.Both:
+                        col.material.bounciness = primitivePhysicsMaterial.Bounciness;
+                        col.material.bouncyness = primitivePhysicsMaterial.Bounciness;
 
-                        col.material.dynamicFriction = specials.Friction;
-                        col.material.dynamicFriction2 = specials.Friction;
-                        col.material.staticFriction = specials.Friction;
-                        col.material.staticFriction2 = specials.Friction;
+                        col.material.dynamicFriction = primitivePhysicsMaterial.Friction;
+                        col.material.dynamicFriction2 = primitivePhysicsMaterial.Friction;
+                        col.material.staticFriction = primitivePhysicsMaterial.Friction;
+                        col.material.staticFriction2 = primitivePhysicsMaterial.Friction;
                         col.material.frictionCombine = PhysicMaterialCombine.Minimum;
                         break;
 
@@ -198,17 +198,17 @@ namespace CustomMapLib
             NonCombatFloor = 11,
             Wall = 1
         }
-        public class SpecialState
+        public class PrimitivePhysicsMaterial
         {
-            public float Bouncines = 0;
+            public float Bounciness = 0;
             public float Friction = 0;
 
-            public SpecialStates state;
+            public Options options;
         }
-        public enum SpecialStates
+        public enum Options
         {
             Bouncy = 0,
-            Slippery = 1,
+            Friction = 1,
             Both = 2
         };
 

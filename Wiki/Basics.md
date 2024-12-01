@@ -56,7 +56,7 @@ general methods and variables, could be useful could be not depending on what yo
 > 3: rotation, again it's just rotation, if you're using a vector for rotation do Quaternion.Euler(vector3) to get the quaternion <br />
 > 4: scale, not much to explain here, size of your object <br />
 > 5: ObjectType, either a CombatFloor (can do moves on), NonCombatFloor (cannot do moves on) or Wall (doesn't use mesh collider) <br />
-> 6: SpecialState, doesn't have to be set, but if it is you can decide if you want a floor or wall bouncy or <br />
-> example of a bouncy and slippery SpecialState <br />
-![example](https://imgur.com/JXYkzm1.png) <br />
-> **keep in mind friction only applies to ungrounded structures, also bounciness doesn't always count as a ground touch to the player**
+> 6: primitivePhysicsMaterial, doesn't have to be set, but if it is you can decide if you want a floor/wallbouncy or change the friction <br />
+> examples of PrimitivePhysicsMaterials (all values can be changed and are not just 0-1) <br />
+![example](https://imgur.com/ONWQgbc.png) <br />
+> **keep in mind friction only applies to ungrounded structures, also bounciness doesn't always count as a ground touch to the player if the fall is too big**
