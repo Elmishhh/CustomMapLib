@@ -9,7 +9,7 @@ same goes with modding, we use assetbundles to load custom models that you other
 3: hope the universe doesn't end before unity finishes downloading <br />
 4: create a new project in unity `2022.1.13f1` with the `Universtal 3D` template <br />
 ![URP option](https://imgur.com/rzWlMkS.png) <br />
-5: in your unity project, create a new folder inside the `Assets` folder and name it `Editor`
+5: in your unity project, create a new folder inside the `Assets` folder and name it `Editor` <br />
 6: in the Editor folder create a new c# script and call it "CreateAssetBundles" <br />
 7: open the c# script and delete everything inside, after that copy the following code and add it in there <br />
 ```cs
