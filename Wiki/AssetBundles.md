@@ -60,7 +60,7 @@ using (System.IO.Stream bundleStream = MelonAssembly.Assembly.GetManifestResourc
     var asset = GameObject.Instantiate(bundle.LoadAsset<GameObject>("AssetName");
 }
 ```
-||(note, if you're getting errors from `Il2CppAssetBundle` make sure you're on melonloader 0.6.5 or higher and reference `UnityEngine.Il2cppAssetbundleManager` from the net6 folder)|| <br />
+(note, if you're getting errors from `Il2CppAssetBundle` make sure you're on melonloader 0.6.5 or higher and reference `UnityEngine.Il2cppAssetbundleManager` from the net6 folder) <br />
 7: change `ProjectName.FolderName.AssetbundleName` to your path, example: "CustomMapLib.Resources.asset" <br />
 ![example image](https://imgur.com/Q0D0GYE.png) <br />
 8: replace "Assetname" when to what your asset is called in unity when you bundled it, also replace <GameObject> to whatever asset you're loading if needed <br />
