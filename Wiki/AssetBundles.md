@@ -71,6 +71,6 @@ using (System.IO.Stream bundleStream = MelonAssembly.Assembly.GetManifestResourc
 less preferrable than loading from memory if the asset is always consistent but better if it can be changed
 
 1: create a new method in your code, we'll call it "LoadAsset" again (or use an existing method) <br />
-2: add `Il2CppAssetBundle bundle = Il2CppAssetBundleManager.LoadFromFile("path goes here"); <br />
+2: add `Il2CppAssetBundle bundle = Il2CppAssetBundleManager.LoadFromFile("path goes here");` <br />
 3: edit the path, example: "UserData/MyAssets/asset" <br />
 4: load the asset with `var asset = GameObject.Instantiate(bundle.LoadAsset<GameObject>("AssetName");` (same as before) <br />
