@@ -9,8 +9,9 @@ same goes with modding, we use assetbundles to load custom models that you other
 3: hope the universe doesn't end before unity finishes downloading <br />
 4: create a new project in unity `2022.1.13f1` with the `Universtal 3D` template <br />
 ![URP option](https://imgur.com/rzWlMkS.png) <br />
-5: create a new c# script in unity, call it "CreateAssetBundles" and open it with visual studio 2022 <br />
-6: delete everything inside the c# file you just created and paste this code instead <br />
+5: in your unity project, create a new folder inside the `Assets` folder and name it `Editor`
+6: in the Editor folder create a new c# script and call it "CreateAssetBundles" <br />
+7: open the c# script and delete everything inside, after that copy the following code and add it in there <br />
 ```cs
 using UnityEngine;
 using UnityEditor;
@@ -30,13 +31,13 @@ public class CreateAssetBundles
     }
 }
 ```
-7: go back to your unity project and in the top left hover over `edit` and select `Project Settings...` at the bottom <br />
-8: in the new window that opened, go to the bottom left and install XR Plugin Management <br />
-9: select `OpenXR` in the plugin providers and allow unity to restart the editor after it's done (unity will tell you when it's done) <br />
-10: in Interaction Profiles add `Oculus Touch Controller Profile` and `Valve Index Controller Profile` <br />
+8: go back to your unity project and in the top left hover over `edit` and select `Project Settings...` at the bottom <br />
+9: in the new window that opened, go to the bottom left and install XR Plugin Management <br />
+10: select `OpenXR` in the plugin providers and allow unity to restart the editor after it's done (unity will tell you when it's done) <br />
+11: in Interaction Profiles add `Oculus Touch Controller Profile` and `Valve Index Controller Profile` <br />
 ![interaction profiles plus button location](https://imgur.com/dBjauSy.png) <br />
 ![what profiles to add](https://imgur.com/YYGPIgH.png) <br />
-11: your project is now fully set up, when you want to build an assetbundle just add your selected prefabs to the same bundle and click on `Build AssetBundles` in the `assets` tab at the top left <br />
+12: your project is now fully set up, when you want to build an assetbundle just add your selected prefabs to the same bundle and click on `Build AssetBundles` in the `assets` tab at the top left <br />
 
 
 ## loading Assetbundles

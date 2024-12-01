@@ -40,7 +40,7 @@ namespace CustomMapLib.Components
         {
             inMatch = true;
             _map.OnMapMatchLoad(PhotonNetwork.IsMasterClient);
-            currentScene = _map._customMultiplayerMaps.currentScene;
+            currentScene = Map.customMultiplayerMaps.currentScene;
             MelonCoroutines.Start(GetPedestals());
         }
 
