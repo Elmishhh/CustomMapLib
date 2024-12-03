@@ -269,27 +269,18 @@ namespace CustomMapLib
 
         public void LoadPhysicsMaterial()
         {
-            MelonLogger.Msg(1);
             physicMaterialHolder = new GameObject();
-            MelonLogger.Msg(1.1);
             physicMaterialHolderCollider = physicMaterialHolder.AddComponent<BoxCollider>();
-            MelonLogger.Msg(1.2);
             GameObject.DontDestroyOnLoad(physicMaterialHolder);
 
             if (physicMaterialHolderCollider.material == null)
             {
-                MelonLogger.Msg(2);
                 using (System.IO.Stream bundleStream = MelonAssembly.Assembly.GetManifestResourceStream("CustomMapLib.Resources.physicsmaterial"))
                 {
-                    MelonLogger.Msg(3);
                     byte[] bundleBytes = new byte[bundleStream.Length];
-                    MelonLogger.Msg(4);
                     bundleStream.Read(bundleBytes, 0, bundleBytes.Length);
-                    MelonLogger.Msg(5);
                     Il2CppAssetBundle bundle = Il2CppAssetBundleManager.LoadFromMemory(bundleBytes);
-                    MelonLogger.Msg(6);
                     physicMaterialHolderCollider.material = GameObject.Instantiate(bundle.LoadAsset<PhysicMaterial>("baseMaterial"));
-                    MelonLogger.Msg(7);
                 }
             }
         }
