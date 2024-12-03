@@ -45,7 +45,7 @@ namespace CustomMapLib
         public const string Description = "allows you to make more complex custom maps"; // Description for the Mod.  (Set as null if none)
         public const string Author = "elmish"; // Author of the Mod.  (MUST BE SET)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "1.0.0"; // Version of the Mod.  (MUST BE SET)
+        public const string Version = "1.0.1"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
     }
     public class Map : MelonMod
@@ -73,6 +73,9 @@ namespace CustomMapLib
         private static GameObject physicMaterialHolder;
         private static Collider physicMaterialHolderCollider;
 
+        public static string currentScene;
+        public static string previousScene;
+
         public void Initialize(string _mapName, string _mapVersion, string _creatorName, Map _instance)
         {
             if (!mapInitialized)
@@ -93,9 +96,12 @@ namespace CustomMapLib
         }
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
+            previousScene = currentScene;
+            currentScene = sceneName;
+            if (sceneName == "Gym" && previousScene == "Gym") return;
             try
             {
-                if (_loaderInitialized)
+                if (_loaderInitialized && sceneName != "Gym")
                 {
                     MelonCoroutines.Start(coroutine());
                 }
@@ -105,25 +111,29 @@ namespace CustomMapLib
             {
                 if (_loaderInitialized)
                 {
-                    MelonLogger.Msg("disabling maps?");
                     foreach (Map map in _InitializedMaps)
                     {
-                        map.handler.inMatch = false;
+                        if (map.handler != null)
+                        {
+                            map.handler.inMatch = false;
+                        }
                     }
-                    MelonLogger.Msg("finished disabling maps?");
                 }
             }
             catch
             {
-                MelonLogger.Msg("idk why it's erroring");
+                MelonLogger.Error("idk why it's erroring, please ping me on discord!");
+            }
+            if (sceneName == "Loader")
+            {
+                urp_lit = Shader.Find("Universal Render Pipeline/Lit");
+                LoadPhysicsMaterial();
             }
             if (sceneName == "Gym" && !_loaderInitialized)
             {
                 ClassInjector.RegisterTypeInIl2Cpp<MapInternalHandler>();
-                urp_lit = Shader.Find("Universal Render Pipeline/Lit");
                 CreateOriginal();
                 _loaderInitialized = true;
-                LoadPhysicsMaterial();
             }
         }
 
@@ -151,41 +161,58 @@ namespace CustomMapLib
             temp.transform.SetParent(mapParent.transform);
             if (primitivePhysicsMaterial != null)
             {
-                col.material = GetPhysicsMaterial();
-                switch (primitivePhysicsMaterial.options)
+                PhysicMaterial mat = GetPhysicsMaterial();
+                if (mat != null)
                 {
-                    case Options.Bouncy:
-                        col.material.bounciness = primitivePhysicsMaterial.Bounciness;
-                        col.material.bouncyness = primitivePhysicsMaterial.Bounciness;
-                        break;
+                    col.material = mat;
+                    switch (primitivePhysicsMaterial.options)
+                    {
+                        case Options.Bouncy:
+                            col.material.bounciness = primitivePhysicsMaterial.Bounciness;
+                            col.material.bouncyness = primitivePhysicsMaterial.Bounciness;
+                            col.material.bounceCombine = PhysicMaterialCombine.Maximum;
+                            break;
 
-                    case Options.Friction:
-                        col.material.dynamicFriction = primitivePhysicsMaterial.Friction;
-                        col.material.dynamicFriction2 = primitivePhysicsMaterial.Friction;
-                        col.material.staticFriction = primitivePhysicsMaterial.Friction;
-                        col.material.staticFriction2 = primitivePhysicsMaterial.Friction;
-                        col.material.frictionCombine = PhysicMaterialCombine.Minimum;
-                        break;
+                        case Options.Friction:
+                            col.material.dynamicFriction = primitivePhysicsMaterial.Friction;
+                            col.material.dynamicFriction2 = primitivePhysicsMaterial.Friction;
+                            col.material.staticFriction = primitivePhysicsMaterial.Friction;
+                            col.material.staticFriction2 = primitivePhysicsMaterial.Friction;
+                            col.material.frictionCombine = PhysicMaterialCombine.Minimum;
+                            break;
 
-                    case Options.Both:
-                        col.material.bounciness = primitivePhysicsMaterial.Bounciness;
-                        col.material.bouncyness = primitivePhysicsMaterial.Bounciness;
+                        case Options.Both:
+                            col.material.bounciness = primitivePhysicsMaterial.Bounciness;
+                            col.material.bouncyness = primitivePhysicsMaterial.Bounciness;
 
-                        col.material.dynamicFriction = primitivePhysicsMaterial.Friction;
-                        col.material.dynamicFriction2 = primitivePhysicsMaterial.Friction;
-                        col.material.staticFriction = primitivePhysicsMaterial.Friction;
-                        col.material.staticFriction2 = primitivePhysicsMaterial.Friction;
-                        col.material.frictionCombine = PhysicMaterialCombine.Minimum;
-                        break;
+                            col.material.dynamicFriction = primitivePhysicsMaterial.Friction;
+                            col.material.dynamicFriction2 = primitivePhysicsMaterial.Friction;
+                            col.material.staticFriction = primitivePhysicsMaterial.Friction;
+                            col.material.staticFriction2 = primitivePhysicsMaterial.Friction;
+                            col.material.frictionCombine = PhysicMaterialCombine.Minimum;
+                            break;
 
-                    default:
-                        MelonLogger.Error("what the fuck how, ping me with your code this should not be physically possible to get this error");
-                        break;
+                        default:
+                            MelonLogger.Error("what the fuck how, ping me with your code this should not be physically possible to get this error");
+                            break;
+                    }
                 }
             }
             return temp;
         }
-        public static PhysicMaterial GetPhysicsMaterial() { return GameObject.Instantiate(physicMaterialHolderCollider.material); }
+        public PhysicMaterial GetPhysicsMaterial()
+        {
+            try
+            {
+                return GameObject.Instantiate(physicMaterialHolderCollider.material);
+            }
+            catch
+            {
+                MelonLogger.Msg("Physics material is null, please ping @elmishh on discord with your log file");
+                LoadPhysicsMaterial();
+            }
+            return null;
+        }
 
         public virtual void OnMapMatchLoad(bool amHost) { }
         public virtual void OnMapDisabled() { }
@@ -242,15 +269,28 @@ namespace CustomMapLib
 
         public void LoadPhysicsMaterial()
         {
-            using (System.IO.Stream bundleStream = MelonAssembly.Assembly.GetManifestResourceStream("CustomMapLib.Resources.physicsmaterial"))
+            MelonLogger.Msg(1);
+            physicMaterialHolder = new GameObject();
+            MelonLogger.Msg(1.1);
+            physicMaterialHolderCollider = physicMaterialHolder.AddComponent<BoxCollider>();
+            MelonLogger.Msg(1.2);
+            GameObject.DontDestroyOnLoad(physicMaterialHolder);
+
+            if (physicMaterialHolderCollider.material == null)
             {
-                byte[] bundleBytes = new byte[bundleStream.Length];
-                bundleStream.Read(bundleBytes, 0, bundleBytes.Length);
-                Il2CppAssetBundle bundle = Il2CppAssetBundleManager.LoadFromMemory(bundleBytes);
-                physicMaterialHolder = new GameObject();
-                physicMaterialHolderCollider = physicMaterialHolder.AddComponent<BoxCollider>();
-                physicMaterialHolderCollider.material = GameObject.Instantiate(bundle.LoadAsset<PhysicMaterial>("baseMaterial"));
-                GameObject.DontDestroyOnLoad(physicMaterialHolder);
+                MelonLogger.Msg(2);
+                using (System.IO.Stream bundleStream = MelonAssembly.Assembly.GetManifestResourceStream("CustomMapLib.Resources.physicsmaterial"))
+                {
+                    MelonLogger.Msg(3);
+                    byte[] bundleBytes = new byte[bundleStream.Length];
+                    MelonLogger.Msg(4);
+                    bundleStream.Read(bundleBytes, 0, bundleBytes.Length);
+                    MelonLogger.Msg(5);
+                    Il2CppAssetBundle bundle = Il2CppAssetBundleManager.LoadFromMemory(bundleBytes);
+                    MelonLogger.Msg(6);
+                    physicMaterialHolderCollider.material = GameObject.Instantiate(bundle.LoadAsset<PhysicMaterial>("baseMaterial"));
+                    MelonLogger.Msg(7);
+                }
             }
         }
         #region harmony patch hell
