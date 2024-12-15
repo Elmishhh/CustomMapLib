@@ -29,6 +29,7 @@ using System.Runtime.CompilerServices;
 using RC = RumbleModdingAPI.Calls.ControllerMap.RightController;
 using Il2CppRUMBLE.Utilities;
 using UnityEngine.VFX.Utility;
+using System.ComponentModel.Design;
 
 [assembly: AssemblyDescription(CustomMapLib.BuildInfo.Description)]
 [assembly: AssemblyCopyright("Created by " + CustomMapLib.BuildInfo.Author)]
@@ -92,6 +93,7 @@ namespace CustomMapLib
 
                 _InitializedMaps.Add(_instance);
                 mapInitialized = true;
+                customMultiplayerMaps.CustomMultiplayerMaps.GetFromFile();
             }
         }
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
@@ -122,7 +124,7 @@ namespace CustomMapLib
             }
             catch
             {
-                MelonLogger.Error("idk why it's erroring, please ping me on discord!");
+                //MelonLogger.Error("idk why it's erroring, please ping me on discord!");
             }
             if (sceneName == "Loader")
             {
@@ -156,7 +158,7 @@ namespace CustomMapLib
                 temp.layer = 11;
             }
             GroundCollider groundcol = temp.AddComponent<GroundCollider>();
-            groundcol.isMainGroundCollider = true;  
+            groundcol.isMainGroundCollider = true;
             groundcol.collider = col;
             temp.transform.SetParent(mapParent.transform);
             if (primitivePhysicsMaterial != null)
@@ -193,7 +195,7 @@ namespace CustomMapLib
                             break;
 
                         default:
-                            MelonLogger.Error("what the fuck how, ping me with your code this should not be physically possible to get this error");
+                            MelonLogger.Error("what the fuck did you do? did you forget to set options?");
                             break;
                     }
                 }
@@ -290,18 +292,35 @@ namespace CustomMapLib
         {
             public static void Postfix()
             {
-                MelonLogger.Msg("adding custom maps from CustomMapLib");
+                MelonLogger.Msg("[CustomMapLib - PreLoadMaps]: adding custom maps from CustomMapLib");
                 foreach (Map map in _InitializedMaps)
                 {
-                    string mapCombinedName = $"{map.mapName} {map.mapVersion}";
-                    map.mapParent = new GameObject(mapCombinedName);
-                    map.mapParent.transform.SetParent(customMultiplayerMaps.mapsParent.transform);
-                    map.mapParent.SetActive(false);
-                    map.handler = map.mapParent.AddComponent<MapInternalHandler>();
-                    map.handler._map = map;
-                    map.OnMapCreation();
-                    MelonLogger.Msg($"Loading {map.mapName} by {map.creatorName}");
+                    try
+                    {
+                        string mapCombinedName = $"{map.mapName} {map.mapVersion}";
+                        map.mapParent = new GameObject(mapCombinedName);
+                        map.mapParent.transform.SetParent(customMultiplayerMaps.mapsParent.transform);
+                        map.mapParent.SetActive(false);
+                        map.handler = map.mapParent.AddComponent<MapInternalHandler>();
+                        map.handler._map = map;
+                        map.OnMapCreation();
+                        MelonLogger.Msg($"[CustomMapLib - PreLoadMaps]: Loading {map.mapName} by {map.creatorName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        MelonLogger.Error($"[CustomMapLib - PreLoadMaps]: Fatal error occured when loading {map.mapName}, Version {map.mapVersion}, game will now quit, please ping @elmishh with your log file immediately");
+                        MelonLogger.Error(ex);
+                        Application.Quit();
+                    }
                 }
+                GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                obj.transform.position = new Vector3(0, -110, 0);
+                obj.transform.localScale = new Vector3(1000, 20, 1000);
+                obj.transform.name = "CustomMapLib structure kill floor";
+                obj.GetComponent<MeshRenderer>().enabled = false;
+                obj.AddComponent<KillOnTriggerEnter>();
+                obj.AddComponent<GroundCollider>().collider = obj.GetComponent<Collider>();
+                GameObject.DontDestroyOnLoad(obj);
             }
         }
 
@@ -330,7 +349,7 @@ namespace CustomMapLib
                 string mapList = "";
                 if (RMAPI.Mods.doesOpponentHaveMod(BuildInfo.Name, BuildInfo.Version, true))
                 {
-                    MelonLogger.Msg("GetEnabledMapsString - Opponent has mod");
+                    MelonLogger.Msg("[CustomMapLib - GetEnabledMapsString]: Opponent has mod");
                     foreach (var map in _InitializedMaps) loadedmaps++;
 
                     for (int i = 4; i < loadedmaps; i++)
@@ -342,7 +361,6 @@ namespace CustomMapLib
                             mapList += $"{mapName}|";
                         }
                     }
-                    MelonLogger.Msg("GetEnabledMapsString - " + mapList);
                     __result = mapList;
                     return false;
                 }
@@ -358,14 +376,14 @@ namespace CustomMapLib
                 MelonLogger.Msg($"ModsReceived was called");
                 if (RMAPI.Mods.doesOpponentHaveMod(BuildInfo.Name, BuildInfo.Version, true))
                 {
-                    MelonLogger.Msg($"ModsReceived - both players have mod");
+                    MelonLogger.Msg($"[CustomMapLib - ModsReceived]: both players have mod");
                     MelonLogger.Msg($"{customMultiplayerMaps.enabled}, {customMultiplayerMaps.EventSent}, {PhotonNetwork.IsMasterClient}");
                     if (customMultiplayerMaps.enabled && !customMultiplayerMaps.EventSent && !PhotonNetwork.IsMasterClient)
                     {
                         MelonLogger.Msg(customMultiplayerMaps.currentScene);
                         if ((customMultiplayerMaps.currentScene == "Map0") || (customMultiplayerMaps.currentScene == "Map1"))
                         {
-                            MelonLogger.Msg($"ModsReceived - raising event");
+                            MelonLogger.Msg($"[CustomMapLib - ModsReceived]: raising event with code 69");
                             PhotonNetwork.RaiseEvent(customMultiplayerMaps.myEventCode, customMultiplayerMaps.GetEnabledMapsString(), CustomMultiplayerMaps.main.eventOptions, SendOptions.SendReliable);
                         }
                     }
@@ -384,8 +402,7 @@ namespace CustomMapLib
                 {
                     if (eventData.Code == customMultiplayerMaps.myEventCode)
                     {
-                        MelonLogger.Msg($"OnEvent - opponent has mod");
-                        MelonLogger.Msg($"OnEvent - replacing event code 69");
+                        MelonLogger.Msg($"[CustomMapLib - OnEvent 69]: opponent has mod");
                         string[] enabledMaps = eventData.CustomData.ToString().Split('|');
                         MelonLogger.Msg("CustomMapLib || OnEvent intercepted successfully");
                         customMultiplayerMaps.ProcessEventCode69(enabledMaps); // for future referrence, this chooses a map
@@ -393,8 +410,7 @@ namespace CustomMapLib
                     }
                     else if (eventData.Code == customMultiplayerMaps.myEventCode2)
                     {
-                        MelonLogger.Msg($"OnEvent - opponent has mod");
-                        MelonLogger.Msg($"OnEvent - replacing event code 70");
+                        MelonLogger.Msg($"[CustomMapLib - OnEvent 70]: opponent has mod");
                         string[] availableMaps = new string[] { eventData.CustomData.ToString() };
                         customMultiplayerMaps.ProcessEventCode70(availableMaps);
                         return false;
@@ -411,7 +427,7 @@ namespace CustomMapLib
                 MelonLogger.Msg($"ProcessEventCode69 called");
                 if (RMAPI.Mods.doesOpponentHaveMod(BuildInfo.Name, BuildInfo.Version, true))
                 {
-                    MelonLogger.Msg($"ProcessEventCode69 - opponent has mod");
+                    MelonLogger.Msg($"[CustomMapLib - ProcessEventCode69 override]: opponent has mod");
                     string selectedMap = SelectRandomMap(processedString); // processedString = the opponent's enabled maps
                     PhotonNetwork.RaiseEvent(customMultiplayerMaps.myEventCode2, selectedMap, CustomMultiplayerMaps.main.eventOptions2, SendOptions.SendReliable);
                 }
@@ -419,22 +435,68 @@ namespace CustomMapLib
             }
             private static string SelectRandomMap(string[] opponentMaps)
             {
-                string[] myMaps = customMultiplayerMaps.GetEnabledMapsString().Split('|');
+                string[] localMaps = customMultiplayerMaps.GetEnabledMapsString().Split('|');
 
-                List<string> availableMaps = new List<string>();
+                string debug_localMaps = "[";
+                string debug_opponentMaps = "[";
+
+                for (int i = 0; i < localMaps.Length - 1; i++)
+                {
+                    debug_localMaps += localMaps[i];
+                    if (i != localMaps.Length - 1)
+                    {
+                        debug_localMaps += ", ";
+                    }
+                }
+
+                for (int i = 0; i < opponentMaps.Length - 1; i++)
+                {
+                    debug_opponentMaps += localMaps[i];
+                    if (i != opponentMaps.Length - 1)
+                    {
+                        debug_opponentMaps += ", ";
+                    }
+                }
+
+                debug_localMaps += "]";
+                debug_opponentMaps += "]";
+
+                MelonLogger.Msg($"[CustomMapLib - SelectRandomMap]: opponent maps: {debug_opponentMaps}");
+                MelonLogger.Msg($"[CustomMapLib - SelectRandomMap]: local maps: {debug_opponentMaps}");
+
+                List<string> mutualMaps = new List<string>();
                 foreach (string opponentMap in opponentMaps)
                 {
-                    foreach (string myMap in myMaps)
+                    foreach (string myMap in localMaps)
                     {
                         if (opponentMap == myMap)
                         {
-                            availableMaps.Add(myMap);
+                            mutualMaps.Add(myMap);
                         }
                     }
                 }
+
+                if (mutualMaps.Count == 1)
+                {
+                    MelonLogger.Warning("[CustomMapLib - SelectRandomMap]: no mutual maps found, loading gym");
+                    return "NO_MUTUAL_MAPS";
+                }
+
+                string debug_mutualMaps = "[";
+
+                for (int i = 0; i < mutualMaps.Count - 1; i++)
+                {
+                    debug_mutualMaps += localMaps[i];
+                    if (i != mutualMaps.Count - 1)
+                    {
+                        debug_mutualMaps += ", ";
+                    }
+                }
+                debug_mutualMaps += "]";
+
                 System.Random rng = new System.Random();
-                MelonLogger.Error($"FINAL CHOOSING MAP - list length: {availableMaps.Count}, maps: {availableMaps.ToString()}");
-                string map = availableMaps[rng.Next(0, availableMaps.Count - 2)]; // - 2 because there's always an empty one at the end
+                MelonLogger.Error($"[CustomMapLib - SelectRandomMap]: choosing map - list length: {mutualMaps.Count}, maps: {debug_mutualMaps}");
+                string map = mutualMaps[rng.Next(0, mutualMaps.Count - 2)]; // - 2 because there's always an empty one at the end
                 MelonLogger.Msg($"map selected: {map}");
                 return map;
             }
@@ -447,15 +509,26 @@ namespace CustomMapLib
                 MelonLogger.Msg($"ProcessEventCode70 called");
                 if (RMAPI.Mods.doesOpponentHaveMod(BuildInfo.Name, BuildInfo.Version, true))
                 {
-                    MelonLogger.Msg($"ProcessEventCode70 - both players have mod");
-                    if (customMultiplayerMaps.currentScene == "Map0") customMultiplayerMaps.UnLoadMap0();
-                    else if (customMultiplayerMaps.currentScene == "Map1") customMultiplayerMaps.UnLoadMap1();
-                    PoolManager.instance.ResetPools(AssetType.Structure);
+                    if (processedString[0] == "NO_MUTUAL_MAPS") return false;
+                    bool mapFound = false;
+                    MelonLogger.Msg($"[CustomMapLib - ProcessEventCode70 override]: both players have mod");
+                    MelonLogger.Warning($"[CustomMapLib - ProcessEventCode70 override]: looking for map with name: {processedString[0]}");
                     for (int i = 0; i < customMultiplayerMaps.mapsParent.transform.childCount; i++)
                     {
-                        if (customMultiplayerMaps.mapsParent.transform.GetChild(i).name == processedString[0]) customMultiplayerMaps.mapsParent.transform.GetChild(i).gameObject.SetActive(true);
+                        if (customMultiplayerMaps.mapsParent.transform.GetChild(i).name == processedString[0])
+                        {
+                            customMultiplayerMaps.mapsParent.transform.GetChild(i).gameObject.SetActive(true);
+                            if (customMultiplayerMaps.currentScene == "Map0") customMultiplayerMaps.UnLoadMap0();
+                            else if (customMultiplayerMaps.currentScene == "Map1") customMultiplayerMaps.UnLoadMap1();
+                            PoolManager.instance.ResetPools(AssetType.Structure);
+                            mapFound = true;
+                            MelonLogger.Msg($"[CustomMapLib - ProcessEventCode70 override]: loading {processedString[0]}"); // note for tomorrow: this is a bandaid fix for maps not being found and the normal maps getting de-loaded, also add a check if the mutual maps are empty!
+                        }
                     }
-
+                    if (!mapFound)
+                    {
+                        MelonLogger.Error("[CustomMapLib - ProcessEventCode70 override]: Map not found, please dm or ping @elmishh if this happens with a log file");
+                    }
                     return false;
                 }
                 return true;
@@ -511,5 +584,28 @@ namespace CustomMapLib
             catch { }
         }
         #endregion
+    }
+    [RegisterTypeInIl2Cpp]
+    public class KillOnTriggerEnter : MonoBehaviour
+    {
+        public void Start()
+        {
+            GetComponent<Collider>().isTrigger = false;
+            gameObject.layer = 9;
+        }
+        public void OnCollisionEnter(Collision collision)
+        {
+            Structure structureInCollidingObject = collision.other.GetComponent<Structure>();
+            Structure structureInParent = collision.other.GetComponentInParent<Structure>();
+
+            if (structureInCollidingObject != null && (PhotonNetwork.IsMasterClient || !PhotonNetwork.InRoom))
+            {
+                structureInCollidingObject.Kill();
+            }
+            else if (structureInParent != null && (PhotonNetwork.IsMasterClient || !PhotonNetwork.InRoom))
+            {
+                structureInParent.Kill();
+            }
+        }
     }
 }
