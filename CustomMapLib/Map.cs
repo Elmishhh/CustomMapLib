@@ -27,14 +27,18 @@ using AssetsTools.NET;
 using Il2CppRUMBLE.Environment.MatchFlow;
 using System.Runtime.CompilerServices;
 using RC = RumbleModdingAPI.Calls.ControllerMap.RightController;
+using LC = RumbleModdingAPI.Calls.ControllerMap.LeftController;
 using Il2CppRUMBLE.Utilities;
 using UnityEngine.VFX.Utility;
 using System.ComponentModel.Design;
+using Il2CppTMPro;
+using static CustomMapLib.CustomMapLib;
+using UnityEngine.UIElements;
 
 [assembly: AssemblyDescription(CustomMapLib.BuildInfo.Description)]
 [assembly: AssemblyCopyright("Created by " + CustomMapLib.BuildInfo.Author)]
 [assembly: AssemblyTrademark(CustomMapLib.BuildInfo.Company)]
-[assembly: MelonInfo(typeof(CustomMapLib.Map), CustomMapLib.BuildInfo.Name, CustomMapLib.BuildInfo.Version, CustomMapLib.BuildInfo.Author, CustomMapLib.BuildInfo.DownloadLink)]
+[assembly: MelonInfo(typeof(CustomMapLib.CustomMapLib), CustomMapLib.BuildInfo.Name, CustomMapLib.BuildInfo.Version, CustomMapLib.BuildInfo.Author, CustomMapLib.BuildInfo.DownloadLink)]
 [assembly: MelonColor(255, 255, 0, 0)]
 [assembly: MelonGame(null, null)]
 
@@ -46,74 +50,66 @@ namespace CustomMapLib
         public const string Description = "allows you to make more complex custom maps"; // Description for the Mod.  (Set as null if none)
         public const string Author = "elmish"; // Author of the Mod.  (MUST BE SET)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "1.0.1"; // Version of the Mod.  (MUST BE SET)
+        public const string Version = "1.1.0"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
     }
-    public class Map : MelonMod
+    public class CustomMapLib : MelonMod
     {
-        public string mapName;
-        public string creatorName;
-        public string mapVersion;
-        public GameObject mapParent;
-        public bool mapInitialized;
-        public MapInternalHandler handler;
-        public bool inMatch
+        public static CustomMapLib? instance;
+
+        public static List<Map> InitializedMaps = new List<Map>();
+        public static CustomMultiplayerMaps.main? customMultiplayerMaps;
+
+        public static Shader? urp_lit;
+        public static bool mapLoaderInitialized;
+
+        public static GameObject? physicMaterialHolder;
+        public static Collider? physicMaterialHolderCollider;
+
+        public static string? currentScene;
+        public static string? previousScene;
+
+        public static RaiseEventOptions eventOptions = new RaiseEventOptions() { Receivers = ReceiverGroup.Others };
+
+        public override void OnLateInitializeMelon() => instance = this;
+
+        public void OnEvent(EventData eventData)
         {
-            get { return handler.inMatch; }
-        }
-
-        private static List<Map> _InitializedMaps = new List<Map>();
-        public static CustomMultiplayerMaps.main customMultiplayerMaps;
-
-        public static Shader urp_lit;
-        private static bool _loaderInitialized;
-
-        public _PedestalSequences._HostPedestal HostPedestal = new _PedestalSequences._HostPedestal();
-        public _PedestalSequences._InternalClientPedestal ClientPedestal = new _PedestalSequences._InternalClientPedestal();
-
-        private static GameObject physicMaterialHolder;
-        private static Collider physicMaterialHolderCollider;
-
-        public static string currentScene;
-        public static string previousScene;
-
-        public void Initialize(string _mapName, string _mapVersion, string _creatorName, Map _instance)
-        {
-            if (!mapInitialized)
+            if (eventData.Code == 17)
             {
-                mapName = _mapName;
-                mapVersion = _mapVersion;
-                creatorName = _creatorName;
-                customMultiplayerMaps = (CustomMultiplayerMaps.main)FindMelon("CustomMultiplayerMaps", "UlvakSkillz");
-                string mapCombinedName = $"{mapName} {mapVersion}";
-                customMultiplayerMaps.CustomMultiplayerMaps.AddToList(mapCombinedName, true, 0, $"Enable or Disable {mapName} - {creatorName}", new RumbleModUI.Tags());
-
-                HostPedestal._instance = _instance;
-                ClientPedestal._instance = _instance;
-
-                _InitializedMaps.Add(_instance);
-                mapInitialized = true;
-                customMultiplayerMaps.CustomMultiplayerMaps.GetFromFile();
+                string[] splitData = eventData.CustomData.ToString().Split('|');
+                string sender = splitData[0];
+                if (sender == "CustomMapLib")
+                {
+                    string request = splitData[1];
+                    switch (request)
+                    {
+                        case "SnapBack":
+                            instancedCosmeticHandler.ChangeMode(StaffHandler.holdingMode.Back, false);
+                            break;
+                        case "SnapHand":
+                            instancedCosmeticHandler.ChangeMode(StaffHandler.holdingMode.SingleHand, false);
+                            break;
+                        case "SnapDoubleHand":
+                            instancedCosmeticHandler.ChangeMode(StaffHandler.holdingMode.DoubleHand, false);
+                            break;
+                        default:
+                            MelonLogger.Msg($"invalid CustomMapLib raiseEvent: {request}");
+                            break;
+                    }
+                }
             }
         }
-        public override void OnSceneWasInitialized(int buildIndex, string sceneName)
+        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             previousScene = currentScene;
             currentScene = sceneName;
-            if (sceneName == "Gym" && previousScene == "Gym") return;
+            if (sceneName == "Gym" && previousScene == "Gym") return; // stop repeat scene loading
             try
             {
-                if (_loaderInitialized && sceneName != "Gym")
+                if (mapLoaderInitialized)
                 {
-                    MelonCoroutines.Start(coroutine());
-                }
-            }
-            catch { }
-            try
-            {
-                if (_loaderInitialized)
-                {
-                    foreach (Map map in _InitializedMaps)
+                    foreach (Map map in InitializedMaps)
                     {
                         if (map.handler != null)
                         {
@@ -130,79 +126,16 @@ namespace CustomMapLib
             {
                 urp_lit = Shader.Find("Universal Render Pipeline/Lit");
                 LoadPhysicsMaterial();
+                CreateOriginalStaff();
             }
-            if (sceneName == "Gym" && !_loaderInitialized)
+            else if (sceneName == "Gym" && !mapLoaderInitialized)
             {
+                PhotonNetwork.NetworkingClient.EventReceived += (Action<EventData>)OnEvent;
                 ClassInjector.RegisterTypeInIl2Cpp<MapInternalHandler>();
-                CreateOriginal();
-                _loaderInitialized = true;
+                mapLoaderInitialized = true;
             }
         }
-
-        public GameObject CreatePrimitiveObject(PrimitiveType primitiveType, Vector3 position, Quaternion rotation, Vector3 scale, ObjectType type, PrimitivePhysicsMaterial primitivePhysicsMaterial = null)
-        {
-            GameObject temp = GameObject.CreatePrimitive(primitiveType);
-            temp.transform.position = position;
-            temp.transform.rotation = rotation;
-            temp.transform.localScale = scale;
-            temp.GetComponent<Renderer>().material.shader = urp_lit;
-            Collider col = temp.GetComponent<Collider>();
-            if (type != ObjectType.Wall)
-            {
-                GameObject.Destroy(col);
-                col = temp.AddComponent<MeshCollider>();
-                temp.layer = (int)type;
-            }
-            else
-            {
-                temp.layer = 11;
-            }
-            GroundCollider groundcol = temp.AddComponent<GroundCollider>();
-            groundcol.isMainGroundCollider = true;
-            groundcol.collider = col;
-            temp.transform.SetParent(mapParent.transform);
-            if (primitivePhysicsMaterial != null)
-            {
-                PhysicMaterial mat = GetPhysicsMaterial();
-                if (mat != null)
-                {
-                    col.material = mat;
-                    switch (primitivePhysicsMaterial.options)
-                    {
-                        case Options.Bouncy:
-                            col.material.bounciness = primitivePhysicsMaterial.Bounciness;
-                            col.material.bouncyness = primitivePhysicsMaterial.Bounciness;
-                            col.material.bounceCombine = PhysicMaterialCombine.Maximum;
-                            break;
-
-                        case Options.Friction:
-                            col.material.dynamicFriction = primitivePhysicsMaterial.Friction;
-                            col.material.dynamicFriction2 = primitivePhysicsMaterial.Friction;
-                            col.material.staticFriction = primitivePhysicsMaterial.Friction;
-                            col.material.staticFriction2 = primitivePhysicsMaterial.Friction;
-                            col.material.frictionCombine = PhysicMaterialCombine.Minimum;
-                            break;
-
-                        case Options.Both:
-                            col.material.bounciness = primitivePhysicsMaterial.Bounciness;
-                            col.material.bouncyness = primitivePhysicsMaterial.Bounciness;
-
-                            col.material.dynamicFriction = primitivePhysicsMaterial.Friction;
-                            col.material.dynamicFriction2 = primitivePhysicsMaterial.Friction;
-                            col.material.staticFriction = primitivePhysicsMaterial.Friction;
-                            col.material.staticFriction2 = primitivePhysicsMaterial.Friction;
-                            col.material.frictionCombine = PhysicMaterialCombine.Minimum;
-                            break;
-
-                        default:
-                            MelonLogger.Error("what the fuck did you do? did you forget to set options?");
-                            break;
-                    }
-                }
-            }
-            return temp;
-        }
-        public PhysicMaterial GetPhysicsMaterial()
+        public static PhysicMaterial GetPhysicsMaterial()
         {
             try
             {
@@ -215,61 +148,7 @@ namespace CustomMapLib
             }
             return null;
         }
-
-        public virtual void OnMapMatchLoad(bool amHost) { }
-        public virtual void OnMapDisabled() { }
-        public virtual void OnMapCreation() { }
-        public virtual void OnRoundStarted() { }
-
-        public enum ObjectType
-        {
-            CombatFloor = 9,
-            NonCombatFloor = 11,
-            Wall = 1
-        }
-        public class PrimitivePhysicsMaterial
-        {
-            public float Bounciness = 0;
-            public float Friction = 0;
-
-            public Options options;
-        }
-        public enum Options
-        {
-            Bouncy = 0,
-            Friction = 1,
-            Both = 2
-        };
-
-        public class _PedestalSequences
-        {
-            public class _InternalClientPedestal
-            {
-                public Map _instance;
-                public void SetFirstSequence(Vector3 newPosition)
-                {
-                    _instance.handler.ClientPedestalSequence1 = newPosition;
-                }
-                public void SetSecondSequence(Vector3 newPosition)
-                {
-                    _instance.handler.ClientPedestalSequence2 = newPosition;
-                }
-            }
-            public class _HostPedestal
-            {
-                public Map _instance;
-                public void SetFirstSequence(Vector3 newPosition)
-                {
-                    _instance.handler.HostPedestalSequence1 = newPosition;
-                }
-                public void SetSecondSequence(Vector3 newPosition)
-                {
-                    _instance.handler.HostPedestalSequence2 = newPosition;
-                }
-            }
-        }
-
-        public void LoadPhysicsMaterial()
+        public static void LoadPhysicsMaterial()
         {
             physicMaterialHolder = new GameObject();
             physicMaterialHolderCollider = physicMaterialHolder.AddComponent<BoxCollider>();
@@ -277,7 +156,7 @@ namespace CustomMapLib
 
             if (physicMaterialHolderCollider.material == null)
             {
-                using (System.IO.Stream bundleStream = MelonAssembly.Assembly.GetManifestResourceStream("CustomMapLib.Resources.physicsmaterial"))
+                using (System.IO.Stream bundleStream = instance.MelonAssembly.Assembly.GetManifestResourceStream("CustomMapLib.Resources.physicsmaterial"))
                 {
                     byte[] bundleBytes = new byte[bundleStream.Length];
                     bundleStream.Read(bundleBytes, 0, bundleBytes.Length);
@@ -286,6 +165,7 @@ namespace CustomMapLib
                 }
             }
         }
+
         #region harmony patch hell
         [HarmonyPatch(typeof(CustomMultiplayerMaps.main), "PreLoadMaps")]
         public static class MapLoadPatch
@@ -293,7 +173,7 @@ namespace CustomMapLib
             public static void Postfix()
             {
                 MelonLogger.Msg("[CustomMapLib - PreLoadMaps]: adding custom maps from CustomMapLib");
-                foreach (Map map in _InitializedMaps)
+                foreach (Map map in InitializedMaps)
                 {
                     try
                     {
@@ -313,14 +193,6 @@ namespace CustomMapLib
                         Application.Quit();
                     }
                 }
-                GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                obj.transform.position = new Vector3(0, -110, 0);
-                obj.transform.localScale = new Vector3(1000, 20, 1000);
-                obj.transform.name = "CustomMapLib structure kill floor";
-                obj.GetComponent<MeshRenderer>().enabled = false;
-                obj.AddComponent<KillOnTriggerEnter>();
-                obj.AddComponent<GroundCollider>().collider = obj.GetComponent<Collider>();
-                GameObject.DontDestroyOnLoad(obj);
             }
         }
 
@@ -329,7 +201,7 @@ namespace CustomMapLib
         {
             public static void Prefix()
             {
-                foreach (Map map in _InitializedMaps)
+                foreach (Map map in InitializedMaps)
                 {
                     if (map.handler.inMatch)
                     {
@@ -350,7 +222,7 @@ namespace CustomMapLib
                 if (RMAPI.Mods.doesOpponentHaveMod(BuildInfo.Name, BuildInfo.Version, true))
                 {
                     MelonLogger.Msg("[CustomMapLib - GetEnabledMapsString]: Opponent has mod");
-                    foreach (var map in _InitializedMaps) loadedmaps++;
+                    foreach (var map in InitializedMaps) loadedmaps++;
 
                     for (int i = 4; i < loadedmaps; i++)
                     {
@@ -435,28 +307,41 @@ namespace CustomMapLib
             }
             private static string SelectRandomMap(string[] opponentMaps)
             {
+                MelonLogger.Msg(1);
                 string[] localMaps = customMultiplayerMaps.GetEnabledMapsString().Split('|');
+                MelonLogger.Msg(2);
 
                 string debug_localMaps = "[";
                 string debug_opponentMaps = "[";
 
+                MelonLogger.Msg(3);
                 for (int i = 0; i < localMaps.Length - 1; i++)
                 {
+                    MelonLogger.Msg(3.1);
                     debug_localMaps += localMaps[i];
+                    MelonLogger.Msg(3.2);
                     if (i != localMaps.Length - 1)
                     {
+                        MelonLogger.Msg(3.3);
                         debug_localMaps += ", ";
                     }
+                    MelonLogger.Msg(3.4);
                 }
+                MelonLogger.Msg(4);
 
                 for (int i = 0; i < opponentMaps.Length - 1; i++)
                 {
-                    debug_opponentMaps += localMaps[i];
+                    MelonLogger.Msg(4.1);
+                    debug_opponentMaps += opponentMaps[i];
+                    MelonLogger.Msg(4.2);
                     if (i != opponentMaps.Length - 1)
                     {
+                        MelonLogger.Msg(4.3);
                         debug_opponentMaps += ", ";
                     }
+                    MelonLogger.Msg(4.4);
                 }
+                MelonLogger.Msg(5);
 
                 debug_localMaps += "]";
                 debug_opponentMaps += "]";
@@ -464,39 +349,55 @@ namespace CustomMapLib
                 MelonLogger.Msg($"[CustomMapLib - SelectRandomMap]: opponent maps: {debug_opponentMaps}");
                 MelonLogger.Msg($"[CustomMapLib - SelectRandomMap]: local maps: {debug_opponentMaps}");
 
+                MelonLogger.Msg(6);
                 List<string> mutualMaps = new List<string>();
                 foreach (string opponentMap in opponentMaps)
                 {
+                    MelonLogger.Msg(7);
                     foreach (string myMap in localMaps)
                     {
+                        MelonLogger.Msg(8);
                         if (opponentMap == myMap)
                         {
+                            MelonLogger.Msg(9);
                             mutualMaps.Add(myMap);
+                            MelonLogger.Msg(10);
                         }
                     }
+                    MelonLogger.Msg(11);
                 }
 
+                MelonLogger.Msg(12);
                 if (mutualMaps.Count == 1)
                 {
-                    MelonLogger.Warning("[CustomMapLib - SelectRandomMap]: no mutual maps found, loading gym");
+                    MelonLogger.Warning($"[CustomMapLib - SelectRandomMap]: no mutual maps found, disabling. {mutualMaps[0]}");
                     return "NO_MUTUAL_MAPS";
                 }
 
                 string debug_mutualMaps = "[";
 
+                MelonLogger.Msg(13);
                 for (int i = 0; i < mutualMaps.Count - 1; i++)
                 {
+                    MelonLogger.Msg(14);
                     debug_mutualMaps += localMaps[i];
+                    MelonLogger.Msg(15);
                     if (i != mutualMaps.Count - 1)
                     {
+                        MelonLogger.Msg(16);
                         debug_mutualMaps += ", ";
+                        MelonLogger.Msg(17);
                     }
+                    MelonLogger.Msg(18);
                 }
                 debug_mutualMaps += "]";
+                MelonLogger.Msg(19);
 
                 System.Random rng = new System.Random();
-                MelonLogger.Error($"[CustomMapLib - SelectRandomMap]: choosing map - list length: {mutualMaps.Count}, maps: {debug_mutualMaps}");
+                MelonLogger.Error($"[CustomMapLib - SelectRandomMap]: choosing map - list length: {mutualMaps.Count}, maps: {debug_mutualMaps}, selected map index: {rng}");
+                MelonLogger.Msg(20);
                 string map = mutualMaps[rng.Next(0, mutualMaps.Count - 2)]; // - 2 because there's always an empty one at the end
+                MelonLogger.Msg(21);
                 MelonLogger.Msg($"map selected: {map}");
                 return map;
             }
@@ -536,8 +437,13 @@ namespace CustomMapLib
         }
         #endregion
         #region cosmetic stuff
-        private static GameObject ddolStaff;
-        private void CreateOriginal()
+        public static GameObject? cosmetic;
+        public static GameObject? instancedCosmetic;
+        public static StaffHandler instancedCosmeticHandler;
+        public static GameObject? instancedChest;
+        public static GameObject? instancedRightHand;
+        public static GameObject? instancedLeftHand;
+        private void CreateOriginalStaff()
         {
             Il2CppAssetBundle bundle;
             using (System.IO.Stream bundleStream = MelonAssembly.Assembly.GetManifestResourceStream("CustomMapLib.Resources.asset"))
@@ -545,67 +451,320 @@ namespace CustomMapLib
                 byte[] bundleBytes = new byte[bundleStream.Length];
                 bundleStream.Read(bundleBytes, 0, bundleBytes.Length);
                 bundle = Il2CppAssetBundleManager.LoadFromMemory(bundleBytes);
-                ddolStaff = GameObject.Instantiate(bundle.LoadAsset<GameObject>("untitled2"));
-                GameObject.DontDestroyOnLoad(ddolStaff);
-                ddolStaff.transform.position = Vector3.one * 9999;
+                cosmetic = GameObject.Instantiate(bundle.LoadAsset<GameObject>("untitled2"));
+                GameObject.DontDestroyOnLoad(cosmetic);
+                cosmetic.transform.position = Vector3.one * 9999;
             }
         }
-        private System.Collections.IEnumerator coroutine()
+
+        [HarmonyPatch(typeof(PlayerController), "Initialize", new Type[] { typeof(Il2CppRUMBLE.Players.Player) })]
+        public static class PlayerSpawnPatch
         {
-            while (PlayerManager.instance.localPlayer == null) yield return new WaitForFixedUpdate();
-            for (int i = 0; i < 200; i++) yield return new WaitForFixedUpdate();
-            actualmethod();
-        }
-        private void actualmethod()
-        {
-            try
+            private static void Postfix(ref PlayerController __instance, ref Il2CppRUMBLE.Players.Player player)
             {
-                foreach (Il2CppRUMBLE.Players.Player player in PlayerManager.instance.AllPlayers)
+                if (__instance.assignedPlayer.Data.GeneralData.PlayFabMasterId == "3F73EBEC8EDD260F")
                 {
-                    if (player.Data.GeneralData.InternalUsername == "3F73EBEC8EDD260F")
-                    {
-                        GameObject chest = null;
-                        if (player.Controller.transform.childCount == 11)
-                        {
-                            chest = player.Controller.gameObject.transform.GetChild(5).GetChild(7).GetChild(0).GetChild(2).GetChild(0).gameObject;
-                        }
-                        else if (player.Controller.transform.childCount == 12)
-                        {
-                            chest = player.Controller.gameObject.transform.GetChild(6).GetChild(7).GetChild(0).GetChild(2).GetChild(0).gameObject;
-                        }
-                        GameObject staff = GameObject.Instantiate(ddolStaff);
-                        staff.transform.localScale = new Vector3(0.012f, 0.012f, 0.012f);
-                        staff.transform.SetParent(chest.transform);
-                        staff.transform.localPosition = new Vector3(0, 0.1f, -0.15f);
-                        staff.transform.localRotation = Quaternion.Euler(35, 90, 0);
-                    }
+                    MelonCoroutines.Start(delayedMethod(__instance));
                 }
             }
-            catch { }
+            public static System.Collections.IEnumerator delayedMethod(PlayerController __instance)
+            {
+                yield return new WaitForSeconds(2);
+
+                instancedChest = __instance.gameObject.transform.GetChild(0).GetChild(1).GetChild(0).GetChild(4).GetChild(0).gameObject;
+                instancedCosmetic = GameObject.Instantiate(cosmetic);
+                instancedCosmetic.transform.localScale = new Vector3(0.012f, 0.012f, 0.012f);
+                instancedCosmetic.transform.SetParent(instancedChest.transform);
+                instancedCosmetic.transform.localPosition = new Vector3(0, 0.1f, -0.15f);
+                instancedCosmetic.transform.localRotation = Quaternion.Euler(35, 90, 0);
+                instancedCosmeticHandler = instancedCosmetic.AddComponent<StaffHandler>();
+                instancedCosmeticHandler.isLocal = __instance.controllerType == Il2CppRUMBLE.Players.ControllerType.Local;
+
+                instancedLeftHand = __instance.transform.GetChild(1).GetChild(1).gameObject;
+                instancedRightHand = __instance.transform.GetChild(1).GetChild(2).gameObject;
+            }
         }
         #endregion
     }
-    [RegisterTypeInIl2Cpp]
-    public class KillOnTriggerEnter : MonoBehaviour
+    public class Map : MelonMod
     {
+        public string mapName;
+        public string creatorName;
+        public string mapVersion;
+        public GameObject mapParent;
+        public bool mapInitialized;
+        public MapInternalHandler handler;
+
+        public _PedestalSequences._HostPedestal HostPedestal = new _PedestalSequences._HostPedestal();
+        public _PedestalSequences._InternalClientPedestal ClientPedestal = new _PedestalSequences._InternalClientPedestal();
+
+        public bool inMatch
+        {
+            get { return handler.inMatch; }
+        }
+        public void Initialize(string _mapName, string _mapVersion, string _creatorName)
+        {
+            if (!mapInitialized)
+            {
+                mapName = _mapName;
+                mapVersion = _mapVersion;
+                creatorName = _creatorName;
+                customMultiplayerMaps = (CustomMultiplayerMaps.main)FindMelon("CustomMultiplayerMaps", "UlvakSkillz");
+                string mapCombinedName = $"{mapName} {mapVersion}";
+                customMultiplayerMaps.CustomMultiplayerMaps.AddToList(mapCombinedName, true, 0, $"Enable or Disable {mapName} - {creatorName}", new RumbleModUI.Tags());
+
+                HostPedestal._instance = this;
+                ClientPedestal._instance = this;
+
+                CustomMapLib.InitializedMaps.Add(this);
+                mapInitialized = true;
+                customMultiplayerMaps.CustomMultiplayerMaps.GetFromFile();
+            }
+        }
+        [Obsolete("new version does not need 'this' in the end, please update to it.")] // allow older maps to work without needing an update
+        public void Initialize(string _mapName, string _mapVersion, string _creatorName, Map _instance) => Initialize(_mapName, _mapVersion, _creatorName);
+        public GameObject CreatePrimitiveObject(PrimitiveType primitiveType, Vector3 position, Quaternion rotation, Vector3 scale, ObjectType type, PrimitivePhysicsMaterial primitivePhysicsMaterial = null)
+        {
+            GameObject temp = GameObject.CreatePrimitive(primitiveType);
+            temp.transform.position = position;
+            temp.transform.rotation = rotation;
+            temp.transform.localScale = scale;
+            temp.GetComponent<Renderer>().material.shader = urp_lit;
+            Collider col = temp.GetComponent<Collider>();
+            if (type != ObjectType.Wall)
+            {
+                GameObject.Destroy(col);
+                col = temp.AddComponent<MeshCollider>();
+                temp.layer = (int)type;
+            }
+            else
+            {
+                temp.layer = 11;
+            }
+            GroundCollider groundcol = temp.AddComponent<GroundCollider>();
+            groundcol.isMainGroundCollider = true;
+            groundcol.collider = col;
+            temp.transform.SetParent(mapParent.transform);
+            if (primitivePhysicsMaterial != null)
+            {
+                PhysicMaterial mat = CustomMapLib.GetPhysicsMaterial();
+                if (mat != null)
+                {
+                    col.material = mat;
+                    switch (primitivePhysicsMaterial.options)
+                    {
+                        case Options.Bouncy:
+                            col.material.bounciness = primitivePhysicsMaterial.Bounciness;
+                            col.material.bouncyness = primitivePhysicsMaterial.Bounciness;
+                            col.material.bounceCombine = PhysicMaterialCombine.Maximum;
+                            break;
+
+                        case Options.Friction:
+                            col.material.dynamicFriction = primitivePhysicsMaterial.Friction;
+                            col.material.dynamicFriction2 = primitivePhysicsMaterial.Friction;
+                            col.material.staticFriction = primitivePhysicsMaterial.Friction;
+                            col.material.staticFriction2 = primitivePhysicsMaterial.Friction;
+                            col.material.frictionCombine = PhysicMaterialCombine.Minimum;
+                            break;
+
+                        case Options.Both:
+                            col.material.bounciness = primitivePhysicsMaterial.Bounciness;
+                            col.material.bouncyness = primitivePhysicsMaterial.Bounciness;
+
+                            col.material.dynamicFriction = primitivePhysicsMaterial.Friction;
+                            col.material.dynamicFriction2 = primitivePhysicsMaterial.Friction;
+                            col.material.staticFriction = primitivePhysicsMaterial.Friction;
+                            col.material.staticFriction2 = primitivePhysicsMaterial.Friction;
+                            col.material.frictionCombine = PhysicMaterialCombine.Minimum;
+                            break;
+
+                        default:
+                            MelonLogger.Error("what the fuck did you do? did you forget to set options?");
+                            break;
+                    }
+                }
+            }
+            return temp;
+
+        }
+
+        #region enums and dummy classes
+        public enum ObjectType
+        {
+            CombatFloor = 9,
+            NonCombatFloor = 11,
+            Wall = 1
+        }
+        public class PrimitivePhysicsMaterial
+        {
+            public float Bounciness = 0;
+            public float Friction = 0;
+
+            public Options options;
+        }
+        public enum Options
+        {
+            Bouncy = 0,
+            Friction = 1,
+            Both = 2
+        };
+
+        public class _PedestalSequences
+        {
+            public class _InternalClientPedestal
+            {
+                public Map _instance;
+                public void SetFirstSequence(Vector3 newPosition)
+                {
+                    _instance.handler.ClientPedestalSequence1 = newPosition;
+                }
+                public void SetSecondSequence(Vector3 newPosition)
+                {
+                    _instance.handler.ClientPedestalSequence2 = newPosition;
+                }
+            }
+            public class _HostPedestal
+            {
+                public Map _instance;
+                public void SetFirstSequence(Vector3 newPosition)
+                {
+                    _instance.handler.HostPedestalSequence1 = newPosition;
+                }
+                public void SetSecondSequence(Vector3 newPosition)
+                {
+                    _instance.handler.HostPedestalSequence2 = newPosition;
+                }
+            }
+        }
+
+        #endregion
+
+        public virtual void OnMapMatchLoad(bool amHost) { }
+        public virtual void OnMapDisabled() { }
+        public virtual void OnMapCreation() { }
+        public virtual void OnRoundStarted() { }
+    }
+
+    [RegisterTypeInIl2Cpp]
+    public class StaffHandler : MonoBehaviour
+    {
+        public bool isLocal;
+
+        public GameObject rightHandHold;
+        public GameObject leftHandHold;
+
+        public bool RCGrip;
+        public bool LCGrip;
+
+        public enum holdingMode
+        {
+            Back = 0,
+            SingleHand = 1,
+            DoubleHand = 2,
+        };
+
+        public holdingMode currentMode = holdingMode.Back;
+
+        public Vector3 handOffset = new Vector3(0.015f, -0.1f, 0.012f);
+        public Quaternion rotationOffset = Quaternion.Euler(15, 0, 0);
+        public Quaternion doubleHandRotationOffset = Quaternion.Euler(-90, 0, 0);
+
+        public void ChangeMode(holdingMode newMode, bool doRaiseEvent)
+        {
+            currentMode = newMode;
+            if (newMode == holdingMode.Back)
+            {
+                transform.SetParent(CustomMapLib.instancedChest.transform);
+                transform.localPosition = new Vector3(0, 0.1f, -0.15f);
+                transform.localRotation = Quaternion.Euler(35, 90, 0);
+
+                if (doRaiseEvent)
+                {
+                    PhotonNetwork.RaiseEvent(17, "CustomMapLib|SnapBack", CustomMapLib.eventOptions, SendOptions.SendReliable);
+                }
+            }
+            else if (newMode == holdingMode.SingleHand)
+            {
+                transform.SetParent(instancedRightHand.transform);
+                transform.localPosition = handOffset;
+                transform.localRotation = rotationOffset;
+
+                if (doRaiseEvent)
+                {
+                    PhotonNetwork.RaiseEvent(17, "CustomMapLib|SnapHand", CustomMapLib.eventOptions, SendOptions.SendReliable);
+                }
+            }
+            else if (newMode == holdingMode.DoubleHand)
+            {
+                if (doRaiseEvent)
+                {
+                    PhotonNetwork.RaiseEvent(17, "CustomMapLib|SnapDoubleHand", CustomMapLib.eventOptions, SendOptions.SendReliable);
+                }
+            }
+        }
+
         public void Start()
         {
-            GetComponent<Collider>().isTrigger = false;
-            gameObject.layer = 9;
-        }
-        public void OnCollisionEnter(Collision collision)
-        {
-            Structure structureInCollidingObject = collision.other.GetComponent<Structure>();
-            Structure structureInParent = collision.other.GetComponentInParent<Structure>();
+            rightHandHold = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            rightHandHold.transform.localScale = Vector3.one * 0.1f;
+            rightHandHold.transform.SetParent(transform);
+            rightHandHold.transform.localPosition = Vector3.zero + transform.forward * -12.5f + transform.up * 12.5f;
+            //rightHandHold.GetComponent<Renderer>().material.shader = CustomMapLib.urp_lit;
+            rightHandHold.GetComponent<Renderer>().enabled = false;
 
-            if (structureInCollidingObject != null && (PhotonNetwork.IsMasterClient || !PhotonNetwork.InRoom))
+            leftHandHold = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            leftHandHold.transform.localScale = Vector3.one * 0.1f;
+            leftHandHold.transform.SetParent(transform);
+            leftHandHold.transform.localPosition = Vector3.zero + transform.forward * 15f + transform.up * -15f;
+            //leftHandHold.GetComponent<Renderer>().material.shader = CustomMapLib.urp_lit;
+            leftHandHold.GetComponent<Renderer>().enabled = false;
+        }
+
+        public void FixedUpdate()
+        {
+            RCGrip = RC.GetGrip() > 0.5f;
+            LCGrip = LC.GetGrip() > 0.5f;
+            if (currentMode == holdingMode.Back)
             {
-                structureInCollidingObject.Kill();
+                if (RCGrip && Vector3.Distance(rightHandHold.transform.position, instancedRightHand.transform.position) < 0.2 && isLocal)
+                {
+                    ChangeMode(holdingMode.SingleHand, true);
+                }
             }
-            else if (structureInParent != null && (PhotonNetwork.IsMasterClient || !PhotonNetwork.InRoom))
+            else if (currentMode == holdingMode.SingleHand)
             {
-                structureInParent.Kill();
+                if (LCGrip && Vector3.Distance(leftHandHold.transform.position, instancedLeftHand.transform.position) < 0.2 && isLocal)
+                {
+                    ChangeMode(holdingMode.DoubleHand, true);
+                }
+                else if (!RCGrip && isLocal)
+                {
+                    ChangeMode(holdingMode.Back, true);
+                }
             }
+            else if (currentMode == holdingMode.DoubleHand)
+            {
+                Quaternion rotation = LookAt(instancedLeftHand.transform.position, instancedRightHand.transform.position) * doubleHandRotationOffset;
+                Vector3 position = (instancedLeftHand.transform.position + instancedRightHand.transform.position * 3) / 4;
+
+                transform.rotation = rotation;
+                transform.position = position;
+
+                if (!LCGrip && isLocal)
+                {
+                    ChangeMode(holdingMode.SingleHand, true);
+                }
+                else if (!RCGrip && isLocal)
+                {
+                    ChangeMode(holdingMode.Back, true);
+                }
+            }
+        }
+        public Quaternion LookAt(Vector3 objectPosition, Vector3 lookAtPosition)
+        {
+            Vector3 targetDir = objectPosition - lookAtPosition;
+            Quaternion lookDir = Quaternion.LookRotation(targetDir);
+            return lookDir;
         }
     }
 }

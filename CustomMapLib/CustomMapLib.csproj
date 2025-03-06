@@ -122,9 +122,6 @@
     <Reference Include="Il2CppPhotonVoice.PUN">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\Il2CppPhotonVoice.PUN.dll</HintPath>
     </Reference>
-    <Reference Include="Il2CppPhotonWebSocket">
-      <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\Il2CppPhotonWebSocket.dll</HintPath>
-    </Reference>
     <Reference Include="Il2CppPlayFab">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\Il2CppPlayFab.dll</HintPath>
     </Reference>
@@ -193,9 +190,6 @@
     </Reference>
     <Reference Include="MelonLoader.NativeHost">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\net6\MelonLoader.NativeHost.dll</HintPath>
-    </Reference>
-    <Reference Include="MelonStartScreen">
-      <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\net6\MelonStartScreen.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\net6\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -446,9 +440,6 @@
     <Reference Include="UnityEngine.SharedInternalsModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.SharedInternalsModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.SpatialTracking">
-      <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.SpatialTracking.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.SpriteMaskModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.SpriteMaskModule.dll</HintPath>
     </Reference>
@@ -491,17 +482,11 @@
     <Reference Include="UnityEngine.UIElementsModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.UIElementsModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UIElementsNativeModule">
-      <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.UIElementsNativeModule.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.UIModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.UIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UmbraModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.UmbraModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UNETModule">
-      <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.UNETModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UnityAnalyticsModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.UnityAnalyticsModule.dll</HintPath>
