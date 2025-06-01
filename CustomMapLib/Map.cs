@@ -34,6 +34,8 @@ using System.ComponentModel.Design;
 using Il2CppTMPro;
 using static CustomMapLib.CustomMapLib;
 using UnityEngine.UIElements;
+using Importer = CustomMapLib.Importer;
+using Il2CppPhoton.Compression;
 
 [assembly: AssemblyDescription(CustomMapLib.BuildInfo.Description)]
 [assembly: AssemblyCopyright("Created by " + CustomMapLib.BuildInfo.Author)]
@@ -50,7 +52,7 @@ namespace CustomMapLib
         public const string Description = "allows you to make more complex custom maps"; // Description for the Mod.  (Set as null if none)
         public const string Author = "elmish"; // Author of the Mod.  (MUST BE SET)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "1.1.0"; // Version of the Mod.  (MUST BE SET)
+        public const string Version = "2.0.0"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
     }
     public class CustomMapLib : MelonMod
@@ -58,6 +60,9 @@ namespace CustomMapLib
         public static CustomMapLib? instance;
 
         public static List<Map> InitializedMaps = new List<Map>();
+        public static List<NonScriptedMap> InitializedNonScriptedMatchMaps = new List<NonScriptedMap>();
+        public static List<NonScriptedMap> InitializedParkMaps = new List<NonScriptedMap>();
+        public static List<NonScriptedMap> InitializedGymMaps = new List<NonScriptedMap>();
         public static CustomMultiplayerMaps.main? customMultiplayerMaps;
 
         public static Shader? urp_lit;
@@ -70,6 +75,22 @@ namespace CustomMapLib
         public static string? previousScene;
 
         public static RaiseEventOptions eventOptions = new RaiseEventOptions() { Receivers = ReceiverGroup.Others };
+
+        public static GameObject[] GetStructurePools()
+        {
+            GameObject[] pools = new GameObject[] // literally every structure pool
+            {
+                RMAPI.GameObjects.DDOL.GameInstance.PreInitializable.PoolManager.Disc.GetGameObject(),
+                RMAPI.GameObjects.DDOL.GameInstance.PreInitializable.PoolManager.Ball.GetGameObject(),
+                RMAPI.GameObjects.DDOL.GameInstance.PreInitializable.PoolManager.Pillar.GetGameObject(),
+                RMAPI.GameObjects.DDOL.GameInstance.PreInitializable.PoolManager.RockCube.GetGameObject(),
+                RMAPI.GameObjects.DDOL.GameInstance.PreInitializable.PoolManager.Wall.GetGameObject(),
+                RMAPI.GameObjects.DDOL.GameInstance.PreInitializable.PoolManager.BoulderBall.GetGameObject(),
+                RMAPI.GameObjects.DDOL.GameInstance.PreInitializable.PoolManager.SmallRock.GetGameObject(),
+                RMAPI.GameObjects.DDOL.GameInstance.PreInitializable.PoolManager.LargeRock.GetGameObject()
+            };
+            return pools;
+        }
 
         public override void OnLateInitializeMelon() => instance = this;
 
@@ -172,7 +193,8 @@ namespace CustomMapLib
         {
             public static void Postfix()
             {
-                MelonLogger.Msg("[CustomMapLib - PreLoadMaps]: adding custom maps from CustomMapLib");
+                Importer.CreateAllMaps();
+                MelonLogger.Msg("[CustomMapLib - PreLoadMaps]: adding scripted custom maps from CustomMapLib");
                 foreach (Map map in InitializedMaps)
                 {
                     try
@@ -184,7 +206,7 @@ namespace CustomMapLib
                         map.handler = map.mapParent.AddComponent<MapInternalHandler>();
                         map.handler._map = map;
                         map.OnMapCreation();
-                        MelonLogger.Msg($"[CustomMapLib - PreLoadMaps]: Loading {map.mapName} by {map.creatorName}");
+                        MelonLogger.Msg($"[CustomMapLib - PreLoadMaps]: Loading Map: {map.mapName} by {map.creatorName}");
                     }
                     catch (Exception ex)
                     {
@@ -192,6 +214,17 @@ namespace CustomMapLib
                         MelonLogger.Error(ex);
                         Application.Quit();
                     }
+                }
+                MelonLogger.Msg("[CustomMapLib - PreLoadMaps]: adding non scripted custom maps from CustomMapLib");
+                foreach (NonScriptedMap map in InitializedNonScriptedMatchMaps)
+                {
+                    map.mapParent.transform.name = $"{map.mapName} {map.mapVersion}";
+                    map.mapParent.transform.SetParent(customMultiplayerMaps.mapsParent.transform);
+                    map.mapParent.SetActive(false);
+                    map.handler = map.mapParent.AddComponent<MapInternalHandler>();
+                    map.handler._map = map;
+                    map.OnMapCreation();
+                    MelonLogger.Msg($"[CustomMapLib - PreLoadMaps]: Loading Non scripted Map: {map.mapName} by {map.creatorName}");
                 }
             }
         }
@@ -217,12 +250,13 @@ namespace CustomMapLib
             public static bool Prefix(ref string __result)
             {
                 MelonLogger.Msg("GetEnabledMapsString was called");
-                int loadedmaps = 13;
+                int loadedmaps = 13; // base amount of maps from custommultiplayermaps (-4)
                 string mapList = "";
                 if (RMAPI.Mods.doesOpponentHaveMod(BuildInfo.Name, BuildInfo.Version, true))
                 {
                     MelonLogger.Msg("[CustomMapLib - GetEnabledMapsString]: Opponent has mod");
                     foreach (var map in InitializedMaps) loadedmaps++;
+                    foreach (var map in InitializedNonScriptedMatchMaps) loadedmaps++;
 
                     for (int i = 4; i < loadedmaps; i++)
                     {
@@ -347,7 +381,7 @@ namespace CustomMapLib
                 debug_opponentMaps += "]";
 
                 MelonLogger.Msg($"[CustomMapLib - SelectRandomMap]: opponent maps: {debug_opponentMaps}");
-                MelonLogger.Msg($"[CustomMapLib - SelectRandomMap]: local maps: {debug_opponentMaps}");
+                MelonLogger.Msg($"[CustomMapLib - SelectRandomMap]: local maps: {debug_localMaps}");
 
                 MelonLogger.Msg(6);
                 List<string> mutualMaps = new List<string>();
@@ -452,6 +486,13 @@ namespace CustomMapLib
                 bundleStream.Read(bundleBytes, 0, bundleBytes.Length);
                 bundle = Il2CppAssetBundleManager.LoadFromMemory(bundleBytes);
                 cosmetic = GameObject.Instantiate(bundle.LoadAsset<GameObject>("untitled2"));
+                for (int i = 0; i < cosmetic.transform.childCount; i++)
+                {
+                    Renderer renderer = cosmetic.transform.GetChild(i).GetComponent<Renderer>();
+                    Texture texture = renderer.material.mainTexture;
+                    renderer.material.shader = Shader.Find("Shader Graphs/RUMBLE_Prop");
+                    renderer.material.SetTexture("_Albedo", texture);
+                }
                 GameObject.DontDestroyOnLoad(cosmetic);
                 cosmetic.transform.position = Vector3.one * 9999;
             }
@@ -502,7 +543,7 @@ namespace CustomMapLib
         {
             get { return handler.inMatch; }
         }
-        public void Initialize(string _mapName, string _mapVersion, string _creatorName)
+        public virtual void Initialize(string _mapName, string _mapVersion, string _creatorName)
         {
             if (!mapInitialized)
             {
@@ -643,6 +684,103 @@ namespace CustomMapLib
         public virtual void OnMapDisabled() { }
         public virtual void OnMapCreation() { }
         public virtual void OnRoundStarted() { }
+    }
+    
+    public sealed class NonScriptedMap : Map // sealed means it cant be inherited from, which it shouldnt ever be since it's only made for maps that cant script things themself
+    {
+        public CustomMap NonScriptedCustomMap;
+        public Quaternion originalRotation;
+        public Vector3 originalPosition;
+
+        public bool doCheckKillboxDistance;
+        public override void Initialize(string _mapName, string _mapVersion, string _creatorName)
+        {
+            mapName = _mapName;
+            mapVersion = _mapVersion;
+            creatorName = _creatorName;
+            customMultiplayerMaps = (CustomMultiplayerMaps.main)FindMelon("CustomMultiplayerMaps", "UlvakSkillz");
+            string mapCombinedName = $"{mapName} {mapVersion}";
+            customMultiplayerMaps.CustomMultiplayerMaps.AddToList(mapCombinedName, true, 0, $"Enable or Disable {mapName} - {creatorName}", new RumbleModUI.Tags());
+
+            HostPedestal._instance = this;
+            ClientPedestal._instance = this;
+
+            CustomMapLib.InitializedNonScriptedMatchMaps.Add(this);
+            mapInitialized = true;
+            customMultiplayerMaps.CustomMultiplayerMaps.GetFromFile();
+        }
+        public override void OnMapCreation()
+        {
+            ClientPedestal.SetFirstSequence(NonScriptedCustomMap.ClientPedestalPosition1.Value);
+            ClientPedestal.SetSecondSequence(NonScriptedCustomMap.ClientPedestalPosition2.Value);
+
+            HostPedestal.SetFirstSequence(NonScriptedCustomMap.HostPedestalPosition1.Value);
+            HostPedestal.SetSecondSequence(NonScriptedCustomMap.HostPedestalPosition2.Value);
+
+            originalPosition = mapParent.transform.position;
+            originalRotation = mapParent.transform.rotation;
+        }
+        public override void OnMapMatchLoad(bool amHost)
+        {
+            doCheckKillboxDistance = true;
+            MelonCoroutines.Start(playerKillBox());
+            MelonCoroutines.Start(structureKillBox());
+
+            mapParent.transform.position += NonScriptedCustomMap.MatchPositionOffset.Value;
+            mapParent.transform.Rotate(NonScriptedCustomMap.MatchRotationOffset.Value.eulerAngles);
+        }
+        public override void OnMapDisabled()
+        {
+            doCheckKillboxDistance = false;
+
+            mapParent.transform.position = originalPosition;
+            mapParent.transform.rotation = originalRotation;
+        }
+        public System.Collections.IEnumerator playerKillBox() // works
+        {
+            while (doCheckKillboxDistance)
+            {
+                yield return new WaitForSeconds(1);
+                foreach (Il2CppRUMBLE.Players.Player player in PlayerManager.instance.AllPlayers)
+                {
+                    float distance = Vector3.Distance(mapParent.transform.position, player.Controller.transform.root.GetChild(1).GetChild(0).GetChild(0).position);
+                    if (distance > NonScriptedCustomMap.PlayerKillboxDistance.Value)
+                    {
+                        if (PhotonNetwork.IsMasterClient)
+                        {
+                            PlayerHealth healthSystem = player.Controller.GetSubsystem<PlayerHealth>();
+                            healthSystem.SetHealth(0, player.Data.HealthPoints);
+                        }
+                    }
+                }
+            }
+        }
+        public System.Collections.IEnumerator structureKillBox() // works
+        {
+            while (doCheckKillboxDistance)
+            {
+                yield return new WaitForSeconds(10);
+                foreach (GameObject pool in CustomMapLib.GetStructurePools())
+                {
+                    for (int i = 0; i < pool.transform.childCount; i++)
+                    {
+                        GameObject child = pool.transform.GetChild(i).gameObject;
+                        if (child.activeSelf)
+                        {
+                            float distance = Vector3.Distance(mapParent.transform.position, child.transform.position);
+                            if (distance > NonScriptedCustomMap.PlayerKillboxDistance.Value)
+                            {
+                                Structure structure = child.GetComponent<Structure>();
+                                if (PhotonNetwork.IsMasterClient || !PhotonNetwork.InRoom)
+                                {
+                                    structure.Kill();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     [RegisterTypeInIl2Cpp]

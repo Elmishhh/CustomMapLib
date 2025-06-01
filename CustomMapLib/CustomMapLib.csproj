@@ -248,6 +248,9 @@
     <Reference Include="MonoMod.Utils">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\net6\MonoMod.Utils.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\net6\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="RumbleModdingAPI">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\Mods\RumbleModdingAPI.dll</HintPath>
     </Reference>
@@ -365,12 +368,6 @@
     <Reference Include="UnityEngine.ClothModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.ClothModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.ClusterInputModule">
-      <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.ClusterInputModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.ClusterRendererModule">
-      <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.ClusterRendererModule.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
@@ -415,9 +412,6 @@
     </Reference>
     <Reference Include="UnityEngine.LocalizationModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.LocalizationModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.NVIDIAModule">
-      <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.NVIDIAModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.ParticleSystemModule.dll</HintPath>
@@ -523,9 +517,6 @@
     </Reference>
     <Reference Include="UnityEngine.VideoModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.VideoModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.VirtualTexturingModule">
-      <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.VirtualTexturingModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.VRModule">
       <HintPath>D:\Steam\steamapps\common\RUMBLE\MelonLoader\Il2CppAssemblies\UnityEngine.VRModule.dll</HintPath>
