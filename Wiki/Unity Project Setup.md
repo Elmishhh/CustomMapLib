@@ -9,8 +9,8 @@
 2: wait for everything to install <br />
 3: at the top left click on 'file' and then 'Clone Repository', go to the URL tab and put in **github.com/Elmishhh/RUMBLEMapTemplate** in the URL section, then hit Clone. remember where the Local Path points to! <br />
 4: wait for everything to install again <br />
-![image](Unity Project Setup Image Assets/1.png)
-![image](Unity Project Setup Image Assets/2.png)
+![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/1.png)
+![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/2.png)
 
 ## Part 2: Installing Unity hub and Unity 2022.3.18f1 <br />
 1: Run the unity hub installer. <br />
@@ -23,7 +23,7 @@
 2: Select the RUMBLEMapTemplate folder that you downloaded in the first part. <br />
 3: Launch the unity project and wait for it to install everything. <br />
 4: Ignore the one time error, it will not appear again and does nothing <br />
-![image](Unity Project Setup Image Assets/3.png)
+![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/3.png)
 
 ## You should now have Unity open and ready to create a map
 
@@ -35,7 +35,7 @@ unity has a lot of buttons and a lot of things happening and a lot of buttons, l
 1: Hierarchy: to the middle left of your screen there will be your Hierarchy, this is where all of your objects are, by default it will have a Main Camera and Directional Light <br />
 2: Inspector: to the middle right of your screen there will be your Inspector, when selecting objects more things will appear there such as position, rotation, scale, layer and all custom components <br />
 3: Assets tab: to the bottom middle if your screen there will be your Assets tab, when importing assets such as FBX files (model files), textures or more you'll need to drag them into there first <br />
-![image](Unity Project Setup Image Assets/4.png)
+![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/4.png)
 
 ## Creating the Map's Parent object 
 1: right click in the Hierarchy and click on 'Create Empty' and name 'Map Parent' (name does not actually matter) <br />
@@ -58,7 +58,7 @@ unity has a lot of buttons and a lot of things happening and a lot of buttons, l
 2: Parent the object to your Map Parent by dragging and dropping it onto the map parent object in the Hierarchy <br />
 > note: make sure the map parent and the object's positions are 0,0,0, otherwise your map wont be centered in matches <br />
 3: you should now see something like this: <br />
-![image](Unity Project Setup Image Assets/5.png)
+![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/5.png)
 4: click on your object to open it in the inspector <br />
 5: at the top right set the layer from 'Default' to one of the following <br />
 > 8: Floor - this is for floor that you can walk on but cant do moves on <br />
@@ -70,12 +70,12 @@ unity has a lot of buttons and a lot of things happening and a lot of buttons, l
 7: after you added your collider component, click on Add Component and add the Ground Collider component as well <br />
 > note: you need both the GroundCollider Component and one of unity's Collider components <br />
 8: drag your object from the Hierarchy onto the 'Collider' section of the 'Ground Collider' component <br />
-![image](Unity Project Setup Image Assets/6.png)
+![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/6.png)
 9: repeat for every object you need <br />
  
 ## Exporting the map
 1: in the top part of your screen, click on 'Custom Maps' and then 'Export as Map' <br />
-![image](Unity Project Setup Image Assets/7.png)
+![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/7.png)
 2: go to your RUMBLE folder, then UserData, then CustomMapLib and export into there <br />
 > note: if this folder does not appear, simply start your game and close it <br />
 3: launch your game and the map should get loaded, if you want to check that the map loaded you will be able to see it in ModUI when looking at CustomMultiplayerMaps <br /> 
@@ -90,4 +90,4 @@ add this to any ground or wall object to make players take damage when hitting i
 2: Constant Damage - makes the player take damage every X amount of seconds instead of one time instantly when touching the object <br />
 3: Damage Interval - how often should players touching the collider take damage <br />
 > note: this only appears if Constant Damage is ticked **on** <br />
-![image](Unity Project Setup Image Assets/8.png)
+![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/8.png)
