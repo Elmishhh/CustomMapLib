@@ -52,7 +52,7 @@ namespace CustomMapLib
         public const string Description = "allows you to make more complex custom maps"; // Description for the Mod.  (Set as null if none)
         public const string Author = "elmish"; // Author of the Mod.  (MUST BE SET)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "2.0.0"; // Version of the Mod.  (MUST BE SET)
+        public const string Version = "2.0.1"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
     }
     public class CustomMapLib : MelonMod
@@ -63,7 +63,13 @@ namespace CustomMapLib
         public static List<NonScriptedMap> InitializedNonScriptedMatchMaps = new List<NonScriptedMap>();
         public static List<NonScriptedMap> InitializedParkMaps = new List<NonScriptedMap>();
         public static List<NonScriptedMap> InitializedGymMaps = new List<NonScriptedMap>();
-        public static CustomMultiplayerMaps.main? customMultiplayerMaps;
+        public static CustomMultiplayerMaps.main? customMultiplayerMaps
+        {
+            get
+            {
+                return (CustomMultiplayerMaps.main)FindMelon("CustomMultiplayerMaps", "UlvakSkillz");
+            }
+        }
 
         public static Shader? urp_lit;
         public static bool mapLoaderInitialized;
@@ -225,6 +231,14 @@ namespace CustomMapLib
                     map.handler._map = map;
                     map.OnMapCreation();
                     MelonLogger.Msg($"[CustomMapLib - PreLoadMaps]: Loading Non scripted Map: {map.mapName} by {map.creatorName}");
+                }
+                for (int i = 0; i < customMultiplayerMaps.mapsParent.transform.childCount; i++)
+                {
+                    GameObject child = customMultiplayerMaps.mapsParent.transform.GetChild(i).gameObject;
+                    if (child.transform.name.ToLower() == "redvsblue")
+                    {
+                        child.transform.name = "Red vs Blue";
+                    }
                 }
             }
         }
@@ -550,7 +564,7 @@ namespace CustomMapLib
                 mapName = _mapName;
                 mapVersion = _mapVersion;
                 creatorName = _creatorName;
-                customMultiplayerMaps = (CustomMultiplayerMaps.main)FindMelon("CustomMultiplayerMaps", "UlvakSkillz");
+                //customMultiplayerMaps = (CustomMultiplayerMaps.main)FindMelon("CustomMultiplayerMaps", "UlvakSkillz");
                 string mapCombinedName = $"{mapName} {mapVersion}";
                 customMultiplayerMaps.CustomMultiplayerMaps.AddToList(mapCombinedName, true, 0, $"Enable or Disable {mapName} - {creatorName}", new RumbleModUI.Tags());
 
@@ -698,7 +712,7 @@ namespace CustomMapLib
             mapName = _mapName;
             mapVersion = _mapVersion;
             creatorName = _creatorName;
-            customMultiplayerMaps = (CustomMultiplayerMaps.main)FindMelon("CustomMultiplayerMaps", "UlvakSkillz");
+            //customMultiplayerMaps = (CustomMultiplayerMaps.main)FindMelon("CustomMultiplayerMaps", "UlvakSkillz");
             string mapCombinedName = $"{mapName} {mapVersion}";
             customMultiplayerMaps.CustomMultiplayerMaps.AddToList(mapCombinedName, true, 0, $"Enable or Disable {mapName} - {creatorName}", new RumbleModUI.Tags());
 

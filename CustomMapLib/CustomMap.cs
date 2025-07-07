@@ -51,7 +51,6 @@ namespace CustomMapLib
             string jsonPath = Path.Combine(extractPath, "MapData.json");
             string json = File.ReadAllText(jsonPath);
             MapData data = JsonConvert.DeserializeObject<MapData>(json);
-            //MelonLogger.Msg("successfuly loaded map data from json");
 
             string bundlePath = Path.Combine(extractPath, "mapBundle");
             Il2CppAssetBundle bundle = Il2CppAssetBundleManager.LoadFromFile(bundlePath);
@@ -71,9 +70,6 @@ namespace CustomMapLib
             dummymap.NonScriptedCustomMap = map;
             dummymap.Initialize(map.MapName, map.MapVersion, map.MapCreator);
             dummymap.mapParent = mapObject;
-
-            MelonLogger.Msg($"client 1:{map.ClientPedestalPosition1.Value}, client 2:{map.ClientPedestalPosition2.Value}");
-            MelonLogger.Msg($"host 1:{map.HostPedestalPosition1.Value}, host 2:{map.HostPedestalPosition2.Value}");
         }
     }
 
