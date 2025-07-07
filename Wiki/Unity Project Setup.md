@@ -96,3 +96,10 @@ add this to any ground or wall object to make players take damage when hitting i
 3: Damage Interval - how often should players touching the collider take damage <br />
 > note: this only appears if Constant Damage is ticked **on** <br />
 ![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/8.png)
+
+# Saving the Map
+there are two ways of doing this
+1: dragging the map parent object from the hierarchy into the assets tab, this will save it as a Prefab file that can then be dragged back into the hierarchy <br />
+> note: i prefer this way because it lets me work on multiple maps at once <br />
+
+2: saving the scene as a .unity file, when closing unity it will prompt you asking if you want to save the scene and then ask you where you want to save the file <br />
