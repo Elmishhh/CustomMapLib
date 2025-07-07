@@ -55,8 +55,10 @@ unity has a lot of buttons and a lot of things happening and a lot of buttons, l
 1: Create a new Object in the Hierarchy <br />
 > option 1: create a primitive object by pressing right click and and going to 3D Objects <br />
 > option 2: using a custom mesh - drag and drop your fbx file into your assets tab and then take it from there and drag it into the Hierarchy window <br />
+
 2: Parent the object to your Map Parent by dragging and dropping it onto the map parent object in the Hierarchy <br />
 > note: make sure the map parent and the object's positions are 0,0,0, otherwise your map wont be centered in matches <br />
+
 3: you should now see something like this: <br />
 ![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/5.png)
 4: click on your object to open it in the inspector <br />
@@ -65,10 +67,13 @@ unity has a lot of buttons and a lot of things happening and a lot of buttons, l
 > 9: CombatFloor - same as floor but you can do moves on it <br />
 > 10: Enviroment - used for walls or environmental objects like the region selection console, you cannot walk on this <br />
 > 11: LeanableEnviroment - same as Enviroment but has a small "leaning" feature when you go into it that is barely noticeable <br />
+
 6: make sure your object has a collider (such as Box Collider, Sphere Collider, Capsule Collider or Mesh Collider) <br />
 > if your object does not have a collider or if it's a capsule or sphere, give it a Mesh Collider and remove any other colliders on it <br />
+
 7: after you added your collider component, click on Add Component and add the Ground Collider component as well <br />
 > note: you need both the GroundCollider Component and one of unity's Collider components <br />
+
 8: drag your object from the Hierarchy onto the 'Collider' section of the 'Ground Collider' component <br />
 ![image](https://github.com/Elmishhh/CustomMapLib/blob/main/Wiki/Unity%20Project%20Setup%20Image%20Assets/6.png)
 9: repeat for every object you need <br />
